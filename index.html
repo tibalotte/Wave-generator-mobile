@@ -582,6 +582,37 @@
         </section>
 
         <section class="panel">
+            <div class="sweep-header">
+                <span class="section-title" style="margin:0">🔄 Auto-Pan / Orbit</span>
+                <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
+            </div>
+            <div id="panBody">
+                <div class="hs-row">
+                    <div class="hs-label-row">
+                        <label for="panRate">Vitesse</label>
+                        <span class="hs-val" id="panRateVal"></span>
+                    </div>
+                    <div class="horiz-slider-wrap">
+                        <button type="button" class="hs-btn" id="panRateMinus" aria-label="Diminuer la vitesse">−</button>
+                        <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Vitesse de l'auto-pan">
+                        <button type="button" class="hs-btn" id="panRatePlus" aria-label="Augmenter la vitesse">+</button>
+                    </div>
+                </div>
+                <div class="hs-row">
+                    <div class="hs-label-row">
+                        <label for="panDepth">Largeur</label>
+                        <span class="hs-val" id="panDepthVal"></span>
+                    </div>
+                    <div class="horiz-slider-wrap">
+                        <button type="button" class="hs-btn" id="panDepthMinus" aria-label="Diminuer la largeur">−</button>
+                        <input type="range" class="hs-range" id="panDepth" min="0" max="100" step="1" aria-label="Largeur de l'auto-pan">
+                        <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Augmenter la largeur">+</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
             <div class="section-title">🎛 Préréglages</div>
             <div class="preset-row" id="builtinPresets"></div>
             <div class="preset-row" id="userPresets"></div>
@@ -646,7 +677,8 @@ const defaultState = {
     waveform: 'sine',
     freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
-    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0
+    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0,
+    panActive: false, panRate: 0.3, panDepth: 70
 };
 
 let state = Object.assign({}, defaultState);
@@ -658,6 +690,8 @@ function loadState() {
     } catch(e) {}
     state.sweepLo = Math.max(50, Math.min(1190, state.sweepLo || 500));
     state.sweepHi = Math.max(state.sweepLo + 10, Math.min(1200, state.sweepHi || 900));
+    state.panRate = Math.max(0.02, Math.min(4, state.panRate || 0.3));
+    state.panDepth = Math.max(0, Math.min(100, state.panDepth ?? 70));
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -668,11 +702,12 @@ function saveState() {
 }
 
 const BUILTIN_PRESETS = [
-    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false } },
-    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false } },
-    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false } },
-    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false } },
-    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400 } },
+    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:false } },
+    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false, panActive:false } },
+    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
+    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
+    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
+    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.5,  depth:30, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:true, panRate:0.4, panDepth:85 } },
 ];
 
 function loadUserPresets() {
@@ -696,6 +731,7 @@ let merger, masterG, analyserL, analyserR, analyserDetune;
 let carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;
 let balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;
 let modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;
+let panOsc, panGainL, panGainR;
 
 function initAudio() {
     if (audioInit) return;
@@ -729,6 +765,14 @@ function initAudio() {
     mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
     mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
 
+    // Auto-pan : LFO sinusoïdal qui module les gains L/R en antiphase.
+    // Les gains panGain s'additionnent à la valeur intrinsèque de balL/balR.gain.
+    panOsc = ctx.createOscillator(); panOsc.type = 'sine';
+    panGainL = ctx.createGain(); panGainL.gain.value = 0;
+    panGainR = ctx.createGain(); panGainR.gain.value = 0;
+    panOsc.connect(panGainL); panOsc.connect(panGainR);
+    panGainL.connect(balL.gain); panGainR.connect(balR.gain);
+
     delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);
     depthGainL = ctx.createGain(); depthGainR = ctx.createGain();
     delayModL.connect(depthGainL); delayModR.connect(depthGainR);
@@ -750,6 +794,7 @@ function initAudio() {
     detuneConstant.connect(carrierOscDetune.frequency);
 
     carrierOsc.start(); carrierOscDetune.start(); carrierOscH2.start(); detuneConstant.start();
+    panOsc.start();
 
     updateModBuffer();
     updateAudioParams();
@@ -809,8 +854,17 @@ function updateAudioParams() {
     depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);
     depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);
 
-    balL.gain.setTargetAtTime(state.balance > 0 ? 1 - state.balance/100 : 1, now, 0.05);
-    balR.gain.setTargetAtTime(state.balance < 0 ? 1 + state.balance/100 : 1, now, 0.05);
+    // Balance statique combinée à l'auto-pan. Le pan abaisse le centre de
+    // chaque canal de pd/2 puis le LFO oscille de ±pd/2 → un balayage L↔R
+    // qui reste centré sur la balance choisie. pd=0 ⇒ comportement statique.
+    const staticL = state.balance > 0 ? 1 - state.balance/100 : 1;
+    const staticR = state.balance < 0 ? 1 + state.balance/100 : 1;
+    const pd = state.panActive ? state.panDepth/100 : 0;
+    balL.gain.setTargetAtTime(Math.max(0, staticL - pd/2), now, 0.05);
+    balR.gain.setTargetAtTime(Math.max(0, staticR - pd/2), now, 0.05);
+    panOsc.frequency.setTargetAtTime(state.hold ? 0 : state.panRate, now, 0.05);
+    panGainL.gain.setTargetAtTime(pd/2, now, 0.05);
+    panGainR.gain.setTargetAtTime(-pd/2, now, 0.05);
 
     let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;
     delaySecs = Math.min(delaySecs, 5.0);
@@ -1067,6 +1121,7 @@ function syncAllUI() {
     renderKnobs();
     renderSliders();
     updateSweepUI();
+    updatePanUI();
     document.getElementById('invertToggle').checked = !!state.invertSweep;
     document.getElementById('doubleToggle').checked = !!state.doubleSweep;
 }
@@ -1153,6 +1208,49 @@ function bindSweep() {
     document.getElementById('doubleToggle').addEventListener('change', e => {
         state.doubleSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();
     });
+}
+
+// --- AUTO-PAN ---
+function updatePanUI() {
+    const rate = document.getElementById('panRate');
+    const depth = document.getElementById('panDepth');
+    if (!rate || !depth) return;
+    rate.value = state.panRate;
+    depth.value = state.panDepth;
+    rate.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((state.panRate - 0.02)/(4 - 0.02))*100)) + '%');
+    depth.style.setProperty('--hs-fill', Math.max(0, Math.min(100, state.panDepth)) + '%');
+    document.getElementById('panRateVal').textContent = (+state.panRate).toFixed(2) + ' Hz';
+    document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Centre' : state.panDepth + ' %';
+    document.getElementById('panToggle').checked = state.panActive;
+    const body = document.getElementById('panBody');
+    body.style.opacity = state.panActive ? '1' : '0.5';
+    body.style.pointerEvents = state.panActive ? 'auto' : 'none';
+}
+
+function bindAutoPan() {
+    const rate = document.getElementById('panRate');
+    const depth = document.getElementById('panDepth');
+    const commit = () => { if (audioInit) updateAudioParams(); saveState(); };
+    const setRate = (v) => {
+        v = Math.round(Math.max(0.02, Math.min(4, v)) / 0.02) * 0.02;
+        state.panRate = +v.toFixed(2);
+        updatePanUI(); commit();
+    };
+    const setDepth = (v) => {
+        state.panDepth = Math.round(Math.max(0, Math.min(100, v)));
+        updatePanUI(); commit();
+    };
+    rate.addEventListener('input', e => setRate(parseFloat(e.target.value)));
+    depth.addEventListener('input', e => setDepth(parseFloat(e.target.value)));
+    holdRepeat(document.getElementById('panRateMinus'), () => setRate(state.panRate - 0.02));
+    holdRepeat(document.getElementById('panRatePlus'),  () => setRate(state.panRate + 0.02));
+    holdRepeat(document.getElementById('panDepthMinus'), () => setDepth(state.panDepth - 1));
+    holdRepeat(document.getElementById('panDepthPlus'),  () => setDepth(state.panDepth + 1));
+    document.getElementById('panToggle').addEventListener('change', e => {
+        state.panActive = e.target.checked;
+        updatePanUI(); if (audioInit) updateAudioParams(); saveState();
+    });
+    updatePanUI();
 }
 
 // --- PRESETS ---
@@ -1333,6 +1431,7 @@ window.addEventListener('load', () => {
     renderKnobs();
     renderSliders();
     bindSweep();
+    bindAutoPan();
     renderPresets();
 
     document.getElementById('btnPlay').addEventListener('click', () => {
