@@ -820,7 +820,7 @@ let merger, masterG, analyserL, analyserR, analyserDetune;
 let carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;
 let balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;
 let modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;
-let panOsc, panGainL, panGainR;
+let panOsc, panShaperL, panShaperR;
 
 function initAudio() {
     if (audioInit) return;
@@ -857,14 +857,16 @@ function initAudio() {
     mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
     mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
 
-    // Auto-pan : LFO (buffer warpPhase, comme la modulation rythmique) qui
-    // module les gains L/R en antiphase. Le panRatio déforme le LFO pour
-    // que l'orbite s'attarde d'un côté puis bascule. La source est créée
-    // par updatePanBuffer(). Les gains panGain s'additionnent à la valeur
-    // intrinsèque de balL/balR.gain.
-    panGainL = ctx.createGain(); panGainL.gain.value = 0;
-    panGainR = ctx.createGain(); panGainR.gain.value = 0;
-    panGainL.connect(balL.gain); panGainR.connect(balR.gain);
+    // Auto-pan : la Balance fixe la position centrale du panoramique et le
+    // LFO (buffer warpPhase) fait osciller cette position autour du centre.
+    // La conversion position → gains L/R suit une loi unique (la même que la
+    // Balance statique) appliquée par deux WaveShapers pilotés par le LFO ;
+    // les courbes sont (re)calculées dans updateAudioParams. balL/balR.gain
+    // sont entièrement pilotés par les shapers (valeur intrinsèque nulle).
+    balL.gain.value = 0; balR.gain.value = 0;
+    panShaperL = ctx.createWaveShaper(); panShaperL.curve = panCurve('L', state.balance/100, 0);
+    panShaperR = ctx.createWaveShaper(); panShaperR.curve = panCurve('R', state.balance/100, 0);
+    panShaperL.connect(balL.gain); panShaperR.connect(balR.gain);
 
     delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);
     depthGainL = ctx.createGain(); depthGainR = ctx.createGain();
@@ -917,6 +919,23 @@ function updateModBuffer() {
     modOsc = newOsc;
 }
 
+// Courbe d'un WaveShaper convertissant la valeur du LFO (∈[-1,1]) en gain
+// d'un canal. La position de pan p = balance + largeur·LFO est bornée à
+// [-1,1], puis convertie par la loi à rail constant : le canal dominant
+// reste à 1, l'autre s'atténue linéairement (identique à la Balance statique).
+// largeur = 0 ⇒ courbe plate = Balance statique pure.
+function panCurve(side, b, depth) {
+    const N = 512;
+    const c = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+        const x = (i/(N-1))*2 - 1;
+        let p = b + depth * x;
+        if (p > 1) p = 1; else if (p < -1) p = -1;
+        c[i] = side === 'L' ? (1 - Math.max(0, p)) : (1 + Math.min(0, p));
+    }
+    return c;
+}
+
 function updatePanBuffer() {
     if (!ctx) return;
     const size = ctx.sampleRate;
@@ -939,7 +958,7 @@ function updatePanBuffer() {
     const newOsc = ctx.createBufferSource();
     newOsc.buffer = buf; newOsc.loop = true;
     newOsc.playbackRate.value = state.hold ? 0 : rate;
-    newOsc.connect(panGainL); newOsc.connect(panGainR);
+    newOsc.connect(panShaperL); newOsc.connect(panShaperR);
 
     const now = ctx.currentTime;
     newOsc.start(now, (panPhaseIntegrator % 1.0) * buf.duration);
@@ -980,19 +999,16 @@ function updateAudioParams() {
     depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);
     depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);
 
-    // Balance statique combinée à l'auto-pan. Le pan abaisse le centre de
-    // chaque canal de pd/2 puis le LFO oscille de ±pd/2 → un balayage L↔R
-    // qui reste centré sur la balance choisie. pd=0 ⇒ comportement statique.
-    const staticL = state.balance > 0 ? 1 - state.balance/100 : 1;
-    const staticR = state.balance < 0 ? 1 + state.balance/100 : 1;
-    const pd = state.panActive ? state.panDepth/100 : 0;
-    balL.gain.setTargetAtTime(Math.max(0, staticL - pd/2), now, 0.05);
-    balR.gain.setTargetAtTime(Math.max(0, staticR - pd/2), now, 0.05);
+    // Balance = centre du panoramique ; l'auto-pan (largeur pd) fait osciller
+    // la position autour de ce centre. Les WaveShapers appliquent la loi de
+    // pan au LFO ; pd=0 ⇒ courbe plate = Balance statique pure.
+    const b = state.balance / 100;
+    const pd = state.panActive ? state.panDepth / 100 : 0;
+    panShaperL.curve = panCurve('L', b, pd);
+    panShaperR.curve = panCurve('R', b, pd);
     const panMult = PAN_MULTS[state.panSync];
     const panRate = panMult !== null ? state.rythm * panMult : state.panRate;
     if (panOsc) panOsc.playbackRate.setTargetAtTime(state.hold ? 0 : panRate, now, 0.05);
-    panGainL.gain.setTargetAtTime(pd/2, now, 0.05);
-    panGainR.gain.setTargetAtTime(-pd/2, now, 0.05);
 
     let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;
     delaySecs = Math.min(delaySecs, 5.0);
