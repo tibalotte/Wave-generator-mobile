@@ -294,6 +294,10 @@
             background: #0f6b7a; border: 3px solid #fff;
         }
 
+        /* ---- Auto-Pan : libellés/valeurs clairs sur le panneau foncé ---- */
+        #autoPanPanel .hs-label-row { color: #fff; }
+        #autoPanPanel .hs-val { color: rgba(255,255,255,0.88); }
+
         /* ---- Toggles iOS — état lisible par position + couleur AA ---- */
         .sweep-header {
             display: flex;
@@ -581,7 +585,7 @@
             <div id="slidersWrap"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="autoPanPanel">
             <div class="sweep-header">
                 <span class="section-title" style="margin:0">🔄 Auto-Pan / Orbit</span>
                 <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
