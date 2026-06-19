@@ -297,6 +297,40 @@
         /* ---- Auto-Pan : libellés/valeurs clairs sur le panneau foncé ---- */
         #autoPanPanel .hs-label-row { color: #fff; }
         #autoPanPanel .hs-val { color: rgba(255,255,255,0.88); }
+        #autoPanPanel .hs-row.row-disabled { opacity: 0.4; pointer-events: none; }
+
+        /* ---- Contrôle segmenté (sync du pan) ---- */
+        .seg-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .seg-btn {
+            min-height: 42px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255,255,255,0.45);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .seg-btn[aria-pressed="true"] { background: var(--go); border-color: #0d7a3e; }
+        .seg-btn:active { filter: brightness(0.92); }
+        .pan-link-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #fff;
+            min-height: 44px;
+            margin-top: 4px;
+        }
 
         /* ---- Toggles iOS — état lisible par position + couleur AA ---- */
         .sweep-header {
@@ -591,7 +625,14 @@
                 <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
             </div>
             <div id="panBody">
-                <div class="hs-row">
+                <div class="hs-label-row" style="color:#fff"><label>Sync rythme</label></div>
+                <div class="seg-row" id="panSyncSeg" role="group" aria-label="Synchronisation du pan sur le rythme">
+                    <button type="button" class="seg-btn" data-sync="free" aria-label="Pan libre">Libre</button>
+                    <button type="button" class="seg-btn" data-sync="half" aria-label="Pan synchronisé demi-vitesse">÷2</button>
+                    <button type="button" class="seg-btn" data-sync="x1" aria-label="Pan synchronisé même vitesse">×1</button>
+                    <button type="button" class="seg-btn" data-sync="x2" aria-label="Pan synchronisé double vitesse">×2</button>
+                </div>
+                <div class="hs-row" id="panRateRow">
                     <div class="hs-label-row">
                         <label for="panRate">Vitesse</label>
                         <span class="hs-val" id="panRateVal"></span>
@@ -600,6 +641,17 @@
                         <button type="button" class="hs-btn" id="panRateMinus" aria-label="Diminuer la vitesse">−</button>
                         <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Vitesse de l'auto-pan">
                         <button type="button" class="hs-btn" id="panRatePlus" aria-label="Augmenter la vitesse">+</button>
+                    </div>
+                </div>
+                <div class="hs-row" id="panPhaseRow">
+                    <div class="hs-label-row">
+                        <label for="panPhase">Phase</label>
+                        <span class="hs-val" id="panPhaseVal"></span>
+                    </div>
+                    <div class="horiz-slider-wrap">
+                        <button type="button" class="hs-btn" id="panPhaseMinus" aria-label="Diminuer la phase">−</button>
+                        <input type="range" class="hs-range" id="panPhase" min="0" max="360" step="5" aria-label="Déphasage du pan">
+                        <button type="button" class="hs-btn" id="panPhasePlus" aria-label="Augmenter la phase">+</button>
                     </div>
                 </div>
                 <div class="hs-row">
@@ -613,7 +665,7 @@
                         <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Augmenter la largeur">+</button>
                     </div>
                 </div>
-                <div class="hs-row">
+                <div class="hs-row" id="panRatioRow">
                     <div class="hs-label-row">
                         <label for="panRatio">Ratio</label>
                         <span class="hs-val" id="panRatioVal"></span>
@@ -624,6 +676,10 @@
                         <button type="button" class="hs-btn" id="panRatioPlus" aria-label="Augmenter le ratio">+</button>
                     </div>
                 </div>
+                <label class="pan-link-label">
+                    <input type="checkbox" class="toggle-ios" id="panLinkRatio" aria-label="Lier le ratio du pan au ratio d'amplitude">
+                    <span>🔗 Lier au ratio d'amplitude</span>
+                </label>
             </div>
         </section>
 
@@ -693,7 +749,8 @@ const defaultState = {
     freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
     balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0,
-    panActive: false, panRate: 0.3, panDepth: 70, panRatio: 50
+    panActive: false, panRate: 0.3, panDepth: 70, panRatio: 50,
+    panSync: 'free', panPhase: 0, panLinkRatio: false
 };
 
 let state = Object.assign({}, defaultState);
@@ -708,6 +765,9 @@ function loadState() {
     state.panRate = Math.max(0.02, Math.min(4, state.panRate || 0.3));
     state.panDepth = Math.max(0, Math.min(100, state.panDepth ?? 70));
     state.panRatio = Math.max(20, Math.min(80, state.panRatio ?? 50));
+    if (!['free','half','x1','x2'].includes(state.panSync)) state.panSync = 'free';
+    state.panPhase = Math.max(0, Math.min(360, state.panPhase || 0));
+    state.panLinkRatio = !!state.panLinkRatio;
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -723,7 +783,7 @@ const BUILTIN_PRESETS = [
     { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
     { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
     { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
-    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.5,  depth:30, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50 } },
+    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.6,  depth:60, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50, panSync:'x1', panPhase:90, panLinkRatio:false } },
 ];
 
 function loadUserPresets() {
@@ -823,6 +883,8 @@ function initAudio() {
 
 let currentPhaseIntegrator = 0;
 let panPhaseIntegrator = 0;
+// Multiplicateurs de synchro du pan (null = mode Libre).
+const PAN_MULTS = { free: null, half: 0.5, x1: 1, x2: 2 };
 function updateModBuffer() {
     if (!ctx) return;
     const size = ctx.sampleRate;
@@ -847,12 +909,23 @@ function updatePanBuffer() {
     const size = ctx.sampleRate;
     const buf = ctx.createBuffer(1, size, ctx.sampleRate);
     const data = buf.getChannelData(0);
-    const ratio = state.panRatio / 100;
-    for (let i = 0; i < size; i++) data[i] = Math.sin(2 * Math.PI * warpPhase(i/size, ratio));
+    // En mode lié, l'orbite emprunte le ratio de la modulation d'amplitude.
+    const effRatio = (state.panLinkRatio ? state.ratio : state.panRatio) / 100;
+    for (let i = 0; i < size; i++) data[i] = Math.sin(2 * Math.PI * warpPhase(i/size, effRatio));
+
+    // En sync, la phase du pan est verrouillée sur celle du rythme (× mult)
+    // décalée du déphasage choisi ; le lock audio est assuré par un
+    // playbackRate proportionnel (cf. updateAudioParams).
+    const mult = PAN_MULTS[state.panSync];
+    const synced = mult !== null;
+    if (synced) {
+        panPhaseIntegrator = (((currentPhaseIntegrator * mult + state.panPhase/360) % 1.0) + 1.0) % 1.0;
+    }
+    const rate = synced ? state.rythm * mult : state.panRate;
 
     const newOsc = ctx.createBufferSource();
     newOsc.buffer = buf; newOsc.loop = true;
-    newOsc.playbackRate.value = state.hold ? 0 : state.panRate;
+    newOsc.playbackRate.value = state.hold ? 0 : rate;
     newOsc.connect(panGainL); newOsc.connect(panGainR);
 
     const now = ctx.currentTime;
@@ -902,7 +975,9 @@ function updateAudioParams() {
     const pd = state.panActive ? state.panDepth/100 : 0;
     balL.gain.setTargetAtTime(Math.max(0, staticL - pd/2), now, 0.05);
     balR.gain.setTargetAtTime(Math.max(0, staticR - pd/2), now, 0.05);
-    if (panOsc) panOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.panRate, now, 0.05);
+    const panMult = PAN_MULTS[state.panSync];
+    const panRate = panMult !== null ? state.rythm * panMult : state.panRate;
+    if (panOsc) panOsc.playbackRate.setTargetAtTime(state.hold ? 0 : panRate, now, 0.05);
     panGainL.gain.setTargetAtTime(pd/2, now, 0.05);
     panGainR.gain.setTargetAtTime(-pd/2, now, 0.05);
 
@@ -1030,7 +1105,7 @@ function renderKnobs() {
             const v = Math.round(parseFloat(input.value) / k.step) * k.step;
             state[k.id] = v;
             setTrack(v); valEl.textContent = k.fmt(v);
-            if (k.id === 'ratio') updateModBuffer();
+            if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
             saveState(); updateHSDisplays();
         });
@@ -1049,7 +1124,7 @@ function renderKnobs() {
             state[k.id] = nv;
             input.value = nv;
             setTrack(nv); valEl.textContent = k.fmt(nv);
-            if (k.id === 'ratio') updateModBuffer();
+            if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
             saveState(); updateHSDisplays();
         };
@@ -1255,16 +1330,42 @@ function updatePanUI() {
     const rate = document.getElementById('panRate');
     const depth = document.getElementById('panDepth');
     const ratio = document.getElementById('panRatio');
-    if (!rate || !depth || !ratio) return;
+    const phase = document.getElementById('panPhase');
+    if (!rate || !depth || !ratio || !phase) return;
+
+    const synced = PAN_MULTS[state.panSync] !== null;
+    const effRatio = state.panLinkRatio ? state.ratio : state.panRatio;
+
     rate.value = state.panRate;
     depth.value = state.panDepth;
-    ratio.value = state.panRatio;
+    ratio.value = effRatio;
+    phase.value = state.panPhase;
     rate.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((state.panRate - 0.02)/(4 - 0.02))*100)) + '%');
     depth.style.setProperty('--hs-fill', Math.max(0, Math.min(100, state.panDepth)) + '%');
-    ratio.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((state.panRatio - 20)/(80 - 20))*100)) + '%');
-    document.getElementById('panRateVal').textContent = (+state.panRate).toFixed(2) + ' Hz';
+    ratio.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((effRatio - 20)/(80 - 20))*100)) + '%');
+    phase.style.setProperty('--hs-fill', Math.max(0, Math.min(100, (state.panPhase/360)*100)) + '%');
+
+    document.getElementById('panRateVal').textContent = synced
+        ? '⟲ ' + state.panSync.replace('half','÷2').replace('x1','×1').replace('x2','×2')
+        : (+state.panRate).toFixed(2) + ' Hz';
     document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Centre' : state.panDepth + ' %';
-    document.getElementById('panRatioVal').textContent = state.panRatio + '/' + (100 - state.panRatio);
+    document.getElementById('panRatioVal').textContent = effRatio + '/' + (100 - effRatio) + (state.panLinkRatio ? ' 🔗' : '');
+    let pv = state.panPhase + '°';
+    if (state.panPhase === 0 || state.panPhase === 360) pv = '0° (aligné)';
+    else if (state.panPhase === 180) pv = '180° (inversé)';
+    document.getElementById('panPhaseVal').textContent = pv;
+
+    // Boutons de sync
+    document.querySelectorAll('#panSyncSeg .seg-btn').forEach(b => {
+        b.setAttribute('aria-pressed', b.dataset.sync === state.panSync ? 'true' : 'false');
+    });
+
+    // Vitesse inactive en sync ; Phase inactive en mode Libre ; Ratio inactif si lié.
+    document.getElementById('panRateRow').classList.toggle('row-disabled', synced);
+    document.getElementById('panPhaseRow').classList.toggle('row-disabled', !synced);
+    document.getElementById('panRatioRow').classList.toggle('row-disabled', state.panLinkRatio);
+    document.getElementById('panLinkRatio').checked = state.panLinkRatio;
+
     document.getElementById('panToggle').checked = state.panActive;
     const body = document.getElementById('panBody');
     body.style.opacity = state.panActive ? '1' : '0.5';
@@ -1291,15 +1392,41 @@ function bindAutoPan() {
         if (audioInit) { updatePanBuffer(); updateAudioParams(); }
         saveState();
     };
+    const phase = document.getElementById('panPhase');
+    const setPhase = (v) => {
+        state.panPhase = Math.max(0, Math.min(360, Math.round(v / 5) * 5));
+        updatePanUI();
+        if (audioInit) { updatePanBuffer(); updateAudioParams(); }
+        saveState();
+    };
+    const setSync = (mode) => {
+        if (!(mode in PAN_MULTS)) return;
+        state.panSync = mode;
+        updatePanUI();
+        if (audioInit) { updatePanBuffer(); updateAudioParams(); }
+        saveState();
+    };
     rate.addEventListener('input', e => setRate(parseFloat(e.target.value)));
     depth.addEventListener('input', e => setDepth(parseFloat(e.target.value)));
     ratio.addEventListener('input', e => setRatio(parseFloat(e.target.value)));
+    phase.addEventListener('input', e => setPhase(parseFloat(e.target.value)));
     holdRepeat(document.getElementById('panRateMinus'), () => setRate(state.panRate - 0.02));
     holdRepeat(document.getElementById('panRatePlus'),  () => setRate(state.panRate + 0.02));
     holdRepeat(document.getElementById('panDepthMinus'), () => setDepth(state.panDepth - 1));
     holdRepeat(document.getElementById('panDepthPlus'),  () => setDepth(state.panDepth + 1));
     holdRepeat(document.getElementById('panRatioMinus'), () => setRatio(state.panRatio - 1));
     holdRepeat(document.getElementById('panRatioPlus'),  () => setRatio(state.panRatio + 1));
+    holdRepeat(document.getElementById('panPhaseMinus'), () => setPhase(state.panPhase - 5));
+    holdRepeat(document.getElementById('panPhasePlus'),  () => setPhase(state.panPhase + 5));
+    document.querySelectorAll('#panSyncSeg .seg-btn').forEach(b => {
+        b.addEventListener('click', () => setSync(b.dataset.sync));
+    });
+    document.getElementById('panLinkRatio').addEventListener('change', e => {
+        state.panLinkRatio = e.target.checked;
+        updatePanUI();
+        if (audioInit) { updatePanBuffer(); updateAudioParams(); }
+        saveState();
+    });
     document.getElementById('panToggle').addEventListener('change', e => {
         state.panActive = e.target.checked;
         updatePanUI(); if (audioInit) updateAudioParams(); saveState();
@@ -1412,7 +1539,12 @@ function animate() {
 
     if (state.playing && !state.hold) {
         currentPhaseIntegrator = (currentPhaseIntegrator + dt * state.rythm) % 1.0;
-        panPhaseIntegrator = (panPhaseIntegrator + dt * state.panRate) % 1.0;
+        const mult = PAN_MULTS[state.panSync];
+        if (mult !== null) {
+            panPhaseIntegrator = (((currentPhaseIntegrator * mult + state.panPhase/360) % 1.0) + 1.0) % 1.0;
+        } else {
+            panPhaseIntegrator = (panPhaseIntegrator + dt * state.panRate) % 1.0;
+        }
     }
 
     if (state.sweepActive && state.playing && !state.hold) {
