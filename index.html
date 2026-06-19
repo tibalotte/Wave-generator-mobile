@@ -900,9 +900,10 @@ function updateModBuffer() {
 
 // Courbe d'un WaveShaper convertissant la valeur du LFO (∈[-1,1]) en gain
 // d'un canal. La position de pan p = balance + largeur·LFO est bornée à
-// [-1,1], puis convertie par la loi à rail constant : le canal dominant
-// reste à 1, l'autre s'atténue linéairement (identique à la Balance statique).
-// largeur = 0 ⇒ courbe plate = Balance statique pure.
+// [-1,1], puis convertie par une loi de panoramique à PUISSANCE CONSTANTE
+// (cos/sin) : les deux canaux varient toujours en sens opposé simultanément
+// (L = cos, R = sin), l'énergie totale L²+R² restant constante. Centre =
+// 0.707 par canal ; rails = 1 / 0. largeur = 0 ⇒ courbe plate = Balance statique.
 function panCurve(side, b, depth) {
     const N = 512;
     const c = new Float32Array(N);
@@ -910,7 +911,8 @@ function panCurve(side, b, depth) {
         const x = (i/(N-1))*2 - 1;
         let p = b + depth * x;
         if (p > 1) p = 1; else if (p < -1) p = -1;
-        c[i] = side === 'L' ? (1 - Math.max(0, p)) : (1 + Math.min(0, p));
+        const theta = (p + 1) * (Math.PI / 4);   // p∈[-1,1] → θ∈[0, π/2]
+        c[i] = side === 'L' ? Math.cos(theta) : Math.sin(theta);
     }
     return c;
 }
@@ -980,7 +982,8 @@ function updateAudioParams() {
 
     // Balance = centre du panoramique ; l'auto-pan (largeur pd) fait osciller
     // la position autour de ce centre. Les WaveShapers appliquent la loi de
-    // pan au LFO ; pd=0 ⇒ courbe plate = Balance statique pure.
+    // pan à puissance constante (L/R toujours en sens opposé) au LFO ;
+    // pd=0 ⇒ courbe plate = Balance statique.
     const b = state.balance / 100;
     const pd = state.panActive ? state.panDepth / 100 : 0;
     panShaperL.curve = panCurve('L', b, pd);
