@@ -573,6 +573,17 @@
     <main class="scroller">
         <section class="card" aria-label="Réglages principaux">
             <div class="wave-select" id="waveSelect" role="group" aria-label="Forme d'onde"></div>
+            <div class="hs-row" id="dutyRow" style="display:none; margin-bottom:18px">
+                <div class="hs-label-row">
+                    <label for="dutyRange">Largeur d'impulsion</label>
+                    <span class="hs-val" id="dutyVal"></span>
+                </div>
+                <div class="horiz-slider-wrap">
+                    <button type="button" class="hs-btn" id="dutyMinus" aria-label="Diminuer la largeur d'impulsion">−</button>
+                    <input type="range" class="hs-range" id="dutyRange" min="5" max="95" step="1" aria-label="Largeur d'impulsion du carré">
+                    <button type="button" class="hs-btn" id="dutyPlus" aria-label="Augmenter la largeur d'impulsion">+</button>
+                </div>
+            </div>
             <div class="sliders-grid" id="knobsGrid"></div>
         </section>
 
@@ -724,7 +735,7 @@ const STORAGE_KEY = 'stimgen_v10_wave_generator';
 const USER_PRESETS_KEY = 'stimgen_v10_user_presets';
 
 const defaultState = {
-    waveform: 'sine',
+    waveform: 'sine', duty: 50,
     freq: 700, volume: 60, rythm: 0.5, depth: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
     balance: 0,
@@ -747,6 +758,7 @@ function loadState() {
     if (!['free','half','x1','x2'].includes(state.panSync)) state.panSync = 'free';
     state.panPhase = Math.max(0, Math.min(360, state.panPhase || 0));
     state.panLinkRatio = !!state.panLinkRatio;
+    state.duty = Math.max(5, Math.min(95, state.duty ?? 50));
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -777,7 +789,7 @@ function applyPreset(ps) {
     Object.keys(defaultState).forEach(k => { if (state[k] === undefined) state[k] = defaultState[k]; });
     saveState();
     syncAllUI();
-    if (audioInit) { updateModBuffer(); updatePanBuffer(); updateAudioParams(); }
+    if (audioInit) { applyCarrierWave(); updateModBuffer(); updatePanBuffer(); updateAudioParams(); }
 }
 
 // --- AUDIO ---
@@ -835,6 +847,7 @@ function initAudio() {
 
     carrierOsc.start();
 
+    applyCarrierWave();
     updateModBuffer();
     updatePanBuffer();
     updateAudioParams();
@@ -913,15 +926,33 @@ function updatePanBuffer() {
     panOsc = newOsc;
 }
 
+// Applique la forme d'onde à la porteuse. Pour le carré, on synthétise une
+// PeriodicWave band-limited dont le rapport cyclique (duty) est réglable :
+// série de Fourier d'un pulse +1/-1 (DC nul ⇒ pas d'offset continu). duty=50
+// redonne exactement un carré standard.
+function applyCarrierWave() {
+    if (!ctx || !carrierOsc) return;
+    if (state.waveform === 'square') {
+        const N = 64;
+        const real = new Float32Array(N + 1);
+        const imag = new Float32Array(N + 1);
+        const d = state.duty / 100;
+        for (let n = 1; n <= N; n++) {
+            real[n] = 2 * Math.sin(2*Math.PI*n*d) / (Math.PI*n);
+            imag[n] = 2 * (1 - Math.cos(2*Math.PI*n*d)) / (Math.PI*n);
+        }
+        carrierOsc.setPeriodicWave(ctx.createPeriodicWave(real, imag));
+    } else {
+        carrierOsc.type = state.waveform || 'sine';
+    }
+}
+
 function updateAudioParams() {
     if (!ctx) return;
     const now = ctx.currentTime;
 
     masterG.gain.setTargetAtTime(state.playing ? state.volume / 100 : 0, now, 0.05);
     if (modOsc) modOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.rythm, now, 0.05);
-
-    const wf = state.waveform || 'sine';
-    if (carrierOsc.type !== wf) carrierOsc.type = wf;
 
     const cf = state.sweepActive ? (state.sweepLo + state.sweepHi)/2 : state.freq;
     carrierOsc.frequency.setTargetAtTime(cf, now, 0.05);
@@ -987,11 +1018,37 @@ function renderWaveSelect() {
             if (state.waveform === w.id) return;
             state.waveform = w.id;
             renderWaveSelect();
-            if (audioInit) updateAudioParams();
+            updateDutyUI();
+            if (audioInit) { applyCarrierWave(); updateAudioParams(); }
             saveState();
         });
         box.appendChild(b);
     });
+}
+
+// Rapport cyclique (largeur d'impulsion) — visible seulement pour le carré.
+function updateDutyUI() {
+    const r = document.getElementById('dutyRange');
+    if (!r) return;
+    r.value = state.duty;
+    r.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((state.duty - 5)/(95 - 5))*100)) + '%');
+    document.getElementById('dutyVal').textContent = state.duty + ' %';
+    document.getElementById('dutyRow').style.display = (state.waveform === 'square') ? '' : 'none';
+}
+
+function bindDuty() {
+    const r = document.getElementById('dutyRange');
+    if (!r) return;
+    const set = (v) => {
+        state.duty = Math.round(Math.max(5, Math.min(95, v)));
+        updateDutyUI();
+        if (audioInit) applyCarrierWave();
+        saveState();
+    };
+    r.addEventListener('input', e => set(parseFloat(e.target.value)));
+    holdRepeat(document.getElementById('dutyMinus'), () => set(state.duty - 1));
+    holdRepeat(document.getElementById('dutyPlus'),  () => set(state.duty + 1));
+    updateDutyUI();
 }
 
 // --- KNOBS (grid sliders) ---
@@ -1108,6 +1165,7 @@ function syncKnob(id, overrideVal) {
 
 function syncAllUI() {
     renderWaveSelect();
+    updateDutyUI();
     renderKnobs();
     updateSweepUI();
     updatePanUI();
@@ -1513,6 +1571,7 @@ window.addEventListener('load', () => {
 
     loadState();
     renderWaveSelect();
+    bindDuty();
     renderKnobs();
     bindSweep();
     bindAutoPan();
