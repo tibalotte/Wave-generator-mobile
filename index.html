@@ -1,183 +1,1386 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Wave Generator</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #07171d; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
-    #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #07171d; z-index: 9999; }
-    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
-    #__bundler_placeholder { color: #999; font-size: 14px; }
-  </style>
-  <noscript>
-    <style>#__bundler_loading { display: none; }</style>
-    <div style="position:fixed;bottom:12px;left:12px;font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;color:#999;background:rgba(255,255,255,0.9);padding:6px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);z-index:10000;">
-      This page requires JavaScript to display.
-    </div>
-  </noscript>
-</head>
-<body>
-  <div id="__bundler_thumbnail">
-  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1200" height="800" fill="#07171d"></rect>
-    <g fill="none" stroke="#1f9d57" stroke-width="22" stroke-linecap="round">
-      <path d="M150 400 Q 300 180 450 400 T 750 400 T 1050 400"></path>
-    </g>
-    <circle cx="600" cy="640" r="70" fill="#1f9d57"></circle>
-    <path d="M580 610 L 580 670 L 630 640 Z" fill="#ffffff"></path>
-  </svg>
-</div>
-  <div id="__bundler_loading">Unpacking...</div>
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0e3a48">
+    <title>Wave Generator</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
 
-  <script>
-    
-document.addEventListener('DOMContentLoaded', async function() {
-  const loading = document.getElementById('__bundler_loading');
-  function setStatus(msg) { if (loading) loading.textContent = msg; }
-
-  // Error sink persists across replaceWith since it's on window, not the DOM.
-  window.addEventListener('error', function(e) {
-    var p = document.body || document.documentElement;
-    var d = document.getElementById('__bundler_err') || p.appendChild(document.createElement('div'));
-    d.id = '__bundler_err';
-    d.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;padding:10px 14px;border-radius:8px;border:1px solid #5c2b2e;z-index:99999;white-space:pre-wrap;max-height:40vh;overflow:auto';
-    d.textContent = (d.textContent ? d.textContent + String.fromCharCode(10) : '') +
-      '[bundle] ' + (e.message || e.type) +
-      (e.filename ? ' (' + e.filename.slice(0, 60) + ':' + e.lineno + ')' : '');
-  }, true);
-
-  try {
-    const manifestEl = document.querySelector('script[type="__bundler/manifest"]');
-    const templateEl = document.querySelector('script[type="__bundler/template"]');
-    if (!manifestEl || !templateEl) {
-      setStatus('Error: missing bundle data');
-      console.error('[bundler] Missing script tags — manifestEl:', !!manifestEl, 'templateEl:', !!templateEl);
-      return;
-    }
-
-    const manifest = JSON.parse(manifestEl.textContent);
-    let template = JSON.parse(templateEl.textContent);
-
-    const uuids = Object.keys(manifest);
-    setStatus('Unpacking ' + uuids.length + ' assets...');
-
-    const blobUrls = {};
-    await Promise.all(uuids.map(async (uuid) => {
-      const entry = manifest[uuid];
-      try {
-        const binaryStr = atob(entry.data);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-
-        let finalBytes = bytes;
-        if (entry.compressed) {
-          if (typeof DecompressionStream !== 'undefined') {
-            const ds = new DecompressionStream('gzip');
-            const writer = ds.writable.getWriter();
-            const reader = ds.readable.getReader();
-            writer.write(bytes);
-            writer.close();
-            const chunks = [];
-            let totalLen = 0;
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              chunks.push(value);
-              totalLen += value.length;
-            }
-            finalBytes = new Uint8Array(totalLen);
-            let offset = 0;
-            for (const chunk of chunks) { finalBytes.set(chunk, offset); offset += chunk.length; }
-          } else {
-            console.warn('DecompressionStream not available, asset ' + uuid + ' may not render');
-          }
+        :root {
+            /* Marque */
+            --brand:        #0e5366;   /* teal app */
+            --brand-deep:   #0a3a48;   /* teal foncé (header / barres) */
+            --bg:           #07171d;   /* fond global */
+            --surface:      #fbfbfa;   /* cartes claires */
+            --surface-2:    rgba(255,255,255,0.07); /* panneaux translucides */
+            --line:         rgba(255,255,255,0.12);
+            /* Texte — contrastes WCAG AA vérifiés */
+            --on-brand:     #ffffff;        /* blanc sur teal = 5.8:1  AA */
+            --ink:          #16242b;        /* texte sur surface claire */
+            --ink-soft:     #4a5860;        /* valeurs / secondaire ≈ 5:1 */
+            --ink-mute:     #5e6c73;
+            /* Actions */
+            --go:           #1f9d57;   /* play actif */
+            --stop:         #c8372f;   /* stop */
+            --hold:         #b8860b;   /* hold actif */
+            --focus:        #ffd24a;   /* anneau de focus (haut contraste) */
+            --radius:       16px;
         }
 
-        blobUrls[uuid] = URL.createObjectURL(new Blob([finalBytes], { type: entry.mime }));
-      } catch (err) {
-        console.error('Failed to decode asset ' + uuid + ':', err);
-        blobUrls[uuid] = URL.createObjectURL(new Blob([], { type: entry.mime }));
-      }
-    }));
+        html, body { height: 100%; }
+        body {
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: var(--on-brand);
+            touch-action: pan-y;
+            -webkit-text-size-adjust: 100%;
+        }
 
-    const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
-    const extResources = extResEl ? JSON.parse(extResEl.textContent) : [];
-    const resourceMap = {};
-    for (const entry of extResources) {
-      if (blobUrls[entry.uuid]) resourceMap[entry.id] = blobUrls[entry.uuid];
+        /* ---- Plein écran, plus de faux cadre de téléphone ---- */
+        .app {
+            min-height: 100%;
+            background: var(--brand);
+            max-width: 520px;        /* limité seulement sur tablette/desktop */
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---- Header collant ---- */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--brand-deep);
+            border-bottom: 1px solid var(--line);
+            padding: calc(env(safe-area-inset-top) + 12px) 18px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .app-header h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin: 0;
+        }
+        .header-vu {
+            display: flex;
+            gap: 4px;
+            align-items: flex-end;
+            height: 22px;
+        }
+        .header-vu span {
+            width: 4px; border-radius: 2px;
+            background: rgba(255,255,255,0.35);
+        }
+
+        /* ---- Zone scrollable ---- */
+        .scroller {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 16px calc(env(safe-area-inset-bottom) + 116px);
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
+        }
+
+        /* ---- Visualiseur ---- */
+        .vis-container {
+            display: flex;
+            gap: 8px;
+            height: 96px;
+            margin-bottom: 16px;
+        }
+        .scope-canvas {
+            flex-grow: 1;
+            background: #0a151a;
+            border-radius: 12px;
+            display: block;
+            border: 1px solid var(--line);
+        }
+        .vu-canvas {
+            width: 30px;
+            flex-shrink: 0;
+            background: #0a151a;
+            border-radius: 12px;
+            display: block;
+            border: 1px solid var(--line);
+        }
+
+        /* ---- Cartes ---- */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px 14px;
+            margin-bottom: 14px;
+            color: var(--ink);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+        }
+        .panel {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 16px 14px;
+            margin-bottom: 14px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        /* ---- Sélecteur de forme d'onde ---- */
+        .wave-select {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .wave-btn {
+            min-height: 56px;            /* cible tactile généreuse */
+            border-radius: 12px;
+            border: 1.5px solid #5d717a; /* contour ≥3:1 sur carte claire (1.4.11) */
+            background: #e8eef0;
+            color: #12343d;
+            font-size: 0.78rem;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .wave-btn .wave-glyph { width: 28px; height: 17px; }
+        .wave-btn[aria-pressed="true"] {
+            background: var(--brand);
+            color: #fff;
+            border-color: var(--brand-deep);
+        }
+        .wave-btn:active { filter: brightness(0.95); }
+
+        /* ---- Grille de knobs ---- */
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 16px;
+        }
+        .slider-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .slider-wrap.disabled-slider { opacity: 0.4; }
+        .slider-wrap.knob-sweep-active { opacity: 0.5; pointer-events: none; }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .slider-label { font-size: 0.9rem; font-weight: 700; color: var(--ink); }
+        .slider-val   { font-size: 0.82rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-soft); }
+
+        .knob-btn-row {
+            display: flex;
+            gap: 8px;
+        }
+        .knob-btn, .hs-btn {
+            background: #e8eef0;
+            border: 1.5px solid #5d717a;   /* contour ≥3:1 sur la carte claire (1.4.11) */
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #12343d;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .knob-btn {
+            flex: 1;
+            height: 44px;                  /* cible tactile 44px (2.5.5 AAA) */
+        }
+        .knob-btn:active, .hs-btn:active { background: #c3d0d4; }
+        button:disabled { cursor: default; }
+
+        /* ---- Sliders verticaux (knobs) ---- */
+        .knob-slider, .hs-range {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 34px;                  /* hauteur tactile généreuse */
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            padding: 0; margin: 0;
+        }
+        .knob-slider::-webkit-slider-runnable-track {
+            height: 10px; border-radius: 5px;
+            background: linear-gradient(to right,
+                var(--thumb-color, #0f6b7a) var(--fill-pct, 0%),
+                #d4dadd var(--fill-pct, 0%));
+        }
+        .knob-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px; height: 28px;
+            margin-top: -9px;
+            border-radius: 50%;
+            background: var(--thumb-color, #0f6b7a);
+            border: 3px solid #fff;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+        }
+        .knob-slider::-moz-range-track { height: 10px; border-radius: 5px; background: #d4dadd; }
+        .knob-slider::-moz-range-progress { height: 10px; border-radius: 5px; background: var(--thumb-color, #0f6b7a); }
+        .knob-slider::-moz-range-thumb {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--thumb-color, #0f6b7a); border: 3px solid #fff;
+        }
+
+        /* ---- Sliders horizontaux ---- */
+        .hs-row { margin-bottom: 16px; }
+        .hs-row:last-child { margin-bottom: 0; }
+        .hs-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+        .hs-val { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-soft); font-size: 0.82rem; font-weight: 600; }
+        .horiz-slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hs-btn {
+            width: 44px; height: 44px;
+            flex-shrink: 0;
+            font-size: 1.6rem;
+        }
+        .hs-range::-webkit-slider-runnable-track {
+            height: 10px; border-radius: 5px;
+            background: linear-gradient(to right,
+                #0f6b7a var(--hs-fill, 50%),
+                #d4dadd var(--hs-fill, 50%));
+        }
+        .hs-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px; height: 28px;
+            margin-top: -9px;
+            border-radius: 50%;
+            background: #0f6b7a;
+            border: 3px solid #fff;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        .hs-range::-moz-range-track { height: 10px; border-radius: 5px; background: #d4dadd; }
+        .hs-range::-moz-range-progress { height: 10px; border-radius: 5px; background: #0f6b7a; }
+        .hs-range::-moz-range-thumb {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #0f6b7a; border: 3px solid #fff;
+        }
+
+        /* ---- Toggles iOS — état lisible par position + couleur AA ---- */
+        .sweep-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .toggle-ios {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 56px; height: 32px;
+            background: #43707f;
+            border-radius: 16px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background 0.25s;
+            flex-shrink: 0;
+            border: 1px solid rgba(0,0,0,0.25);
+        }
+        .toggle-ios:checked { background: var(--go); }
+        .toggle-ios::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 26px; height: 26px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        .toggle-ios:checked::after { transform: translateX(24px); }
+
+        .sweep-label {
+            text-align: center;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 12px 0 4px;
+        }
+        .dual-slider-wrap {
+            position: relative;
+            height: 48px;
+            background: var(--surface);
+            border-radius: 24px;
+            margin: 10px 0;
+            touch-action: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .ds-track {
+            position: absolute;
+            top: 21px; left: 12px; right: 12px;
+            height: 6px; background: #cfd6d9; border-radius: 3px;
+        }
+        .ds-fill {
+            position: absolute;
+            top: 21px; height: 6px;
+            background: #245fa6; cursor: grab; border-radius: 3px;
+        }
+        .ds-handle {
+            position: absolute;
+            top: 9px;
+            width: 30px; height: 30px;
+            background: #fff;
+            border: 3px solid #245fa6;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            z-index: 2;
+        }
+        .sweep-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .sweep-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            min-height: 44px;
+        }
+
+        /* ---- Presets ---- */
+        .preset-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .preset-btn {
+            min-height: 44px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.45);  /* contour visible 1.4.11 */
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .preset-btn:active { background: rgba(255,255,255,0.28); }
+        .preset-del {
+            opacity: 0.85; font-size: 0.85em;
+            padding: 4px;
+        }
+        .preset-save-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preset-name-input {
+            flex-grow: 1;
+            min-height: 44px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.95);
+            color: var(--ink);
+            font-size: 16px;            /* ≥16px : évite le zoom auto iOS */
+            outline: none;
+        }
+        .preset-name-input::placeholder { color: #67757c; }
+        .btn-save-preset {
+            min-height: 44px;
+            padding: 8px 18px;
+            background: var(--go);
+            border: 1.5px solid #0d7a3e;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-save-preset:active { filter: brightness(0.92); }
+
+        /* ---- Sélecteur de sortie ---- */
+        .device-section label.field-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
+        select {
+            width: 100%;
+            min-height: 44px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            font-size: 16px;
+            background: rgba(255,255,255,0.95);
+            color: var(--ink);
+        }
+        .ios-msg { margin-top: 8px; font-size: 0.9rem; color: var(--on-brand); display: none; }
+
+        /* ---- Barre de transport fixe ---- */
+        .transport {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 30;
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);
+            padding-left: max(16px, env(safe-area-inset-left));
+            padding-right: max(16px, env(safe-area-inset-right));
+            background: var(--brand-deep);
+            border-top: 1px solid var(--line);
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.35);
+        }
+        @media (min-width: 520px) {
+            .transport { left: 50%; transform: translateX(-50%); width: 520px; }
+        }
+        .btn-main {
+            flex: 1;
+            min-height: 60px;
+            border-radius: 14px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            border: 2px solid transparent;
+        }
+        .btn-play {
+            background: var(--go);
+            color: #fff;
+            border-color: #0c8a48;
+        }
+        .btn-play.active {
+            background: var(--stop);
+            border-color: #a82a23;
+        }
+        .btn-hold {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            border-color: rgba(255,255,255,0.5);
+        }
+        .btn-hold.active {
+            background: var(--hold);
+            border-color: #8c6708;
+            color: #fff;
+        }
+        .btn-main .icon { font-size: 1.1rem; }
+
+        /* ---- Focus visible (2.4.7 / 2.4.13) ---- */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        .ds-handle:focus-visible,
+        .preset-name-input:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+        .knob-slider:focus-visible,
+        .hs-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 6px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <header class="app-header">
+        <h1>Wave Generator</h1>
+        <div class="header-vu" aria-hidden="true">
+            <span style="height:8px"></span>
+            <span style="height:16px"></span>
+            <span style="height:11px"></span>
+            <span style="height:20px"></span>
+            <span style="height:6px"></span>
+        </div>
+    </header>
+
+    <main class="scroller">
+        <div class="vis-container" aria-hidden="true">
+            <canvas class="scope-canvas" id="scopeCanvas"></canvas>
+            <canvas class="vu-canvas" id="vuCanvas"></canvas>
+        </div>
+
+        <section class="card" aria-label="Réglages principaux">
+            <div class="wave-select" id="waveSelect" role="group" aria-label="Forme d'onde"></div>
+            <div class="sliders-grid" id="knobsGrid"></div>
+        </section>
+
+        <section class="panel">
+            <div class="sweep-header">
+                <span class="section-title" style="margin:0">⟷ Freq Sweep</span>
+                <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Activer le balayage de fréquence">
+            </div>
+            <div id="sweepBody">
+                <div class="sweep-label" id="sweepLabel">50 Hz — 1200 Hz</div>
+                <div class="dual-slider-wrap" id="sweepSlider">
+                    <div class="ds-track"></div>
+                    <div class="ds-fill" id="sweepFill"></div>
+                    <div class="ds-handle" id="sweepH1" tabindex="0" role="slider" aria-label="Fréquence basse du balayage"></div>
+                    <div class="ds-handle" id="sweepH2" tabindex="0" role="slider" aria-label="Fréquence haute du balayage"></div>
+                </div>
+                <div class="sweep-controls">
+                    <label class="sweep-toggle-label">
+                        <input type="checkbox" class="toggle-ios" id="invertToggle" aria-label="Inverser le balayage">
+                        <span>⇄ Inverser</span>
+                    </label>
+                    <label class="sweep-toggle-label">
+                        <input type="checkbox" class="toggle-ios" id="doubleToggle" aria-label="Doubler le balayage">
+                        <span>⋀ Double</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" aria-label="Réglages stéréo et détune">
+            <div id="slidersWrap"></div>
+        </section>
+
+        <section class="panel">
+            <div class="section-title">🎛 Préréglages</div>
+            <div class="preset-row" id="builtinPresets"></div>
+            <div class="preset-row" id="userPresets"></div>
+            <div class="preset-save-row">
+                <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Nom du préréglage…" aria-label="Nom du préréglage">
+                <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Sauver</button>
+            </div>
+        </section>
+
+        <section class="panel device-section" id="deviceSection">
+            <label class="field-label" for="deviceSelect">Sortie audio</label>
+            <select id="deviceSelect">
+                <option value="">Sélection par défaut</option>
+            </select>
+        </section>
+        <p class="ios-msg" id="iosDeviceMsg">Le son est dirigé vers le périphérique iOS par défaut.</p>
+    </main>
+</div>
+
+<nav class="transport" aria-label="Lecture">
+    <button type="button" class="btn-main btn-play" id="btnPlay" aria-pressed="false">
+        <span class="icon" aria-hidden="true">▶</span><span>Play</span>
+    </button>
+    <button type="button" class="btn-main btn-hold" id="btnHold" aria-pressed="false">
+        <span class="icon" aria-hidden="true">⏸</span><span>Hold</span>
+    </button>
+</nav>
+
+<script>
+// ============================================================
+//  Wave Generator — moteur audio + UI
+//  Logique audio inchangée. UI rendue avec de vrais <button>
+//  accessibles (libellés ARIA, focus clavier).
+// ============================================================
+
+// --- MATH UTILS ---
+function warpPhase(t, r) {
+    const r2 = r*r, r3 = r2*r;
+    if (t < r) {
+        const a1 = (2*r - 1) / r3;
+        const b1 = -3*(2*r - 1) / (2*r2);
+        return ((a1*t + b1)*t + 1)*t;
+    } else {
+        const u = (t - r) / (1 - r);
+        return (((1 - 2*r)*u + (6*r - 3)/2)*u + (1 - r))*u + 0.5;
+    }
+}
+
+function subOctaveHMax(fMain) {
+    const cutoff = 200;
+    const Sm = 1 / (1 + (fMain/cutoff)**2);
+    const Ss = 1 / (1 + ((fMain/2)/cutoff)**2);
+    const r = Sm / Ss;
+    return r / (1 + r);
+}
+
+// --- STATE ---
+const STORAGE_KEY = 'stimgen_v10_wave_generator';
+const USER_PRESETS_KEY = 'stimgen_v10_user_presets';
+
+const defaultState = {
+    waveform: 'sine',
+    freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,
+    sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
+    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0
+};
+
+let state = Object.assign({}, defaultState);
+
+function loadState() {
+    try {
+        const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        Object.assign(state, s);
+    } catch(e) {}
+    state.sweepLo = Math.max(50, Math.min(1190, state.sweepLo || 500));
+    state.sweepHi = Math.max(state.sweepLo + 10, Math.min(1200, state.sweepHi || 900));
+    Object.keys(defaultState).forEach(k => {
+        if (state[k] === undefined) state[k] = defaultState[k];
+    });
+}
+
+function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+const BUILTIN_PRESETS = [
+    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false } },
+    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false } },
+    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false } },
+    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false } },
+    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400 } },
+];
+
+function loadUserPresets() {
+    try { return JSON.parse(localStorage.getItem(USER_PRESETS_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveUserPresets(list) { localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(list)); }
+
+function applyPreset(ps) {
+    Object.assign(state, ps);
+    state.sweepLo = Math.max(50, Math.min(1190, state.sweepLo || 500));
+    state.sweepHi = Math.max(state.sweepLo + 10, Math.min(1200, state.sweepHi || 900));
+    Object.keys(defaultState).forEach(k => { if (state[k] === undefined) state[k] = defaultState[k]; });
+    saveState();
+    syncAllUI();
+    if (audioInit) { updateModBuffer(); updateAudioParams(); }
+}
+
+// --- AUDIO ---
+let ctx = null, audioInit = false;
+let merger, masterG, analyserL, analyserR, analyserDetune;
+let carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;
+let balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;
+let modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;
+
+function initAudio() {
+    if (audioInit) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    merger = ctx.createChannelMerger(2);
+    masterG = ctx.createGain(); masterG.gain.value = 0;
+    merger.connect(masterG); masterG.connect(ctx.destination);
+
+    const monL = ctx.createGain(), monR = ctx.createGain();
+    masterG.connect(monL); masterG.connect(monR);
+
+    analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; monL.connect(analyserL);
+    analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; monR.connect(analyserR);
+    analyserDetune = ctx.createAnalyser(); analyserDetune.fftSize = 2048;
+
+    carrierOsc = ctx.createOscillator(); carrierMix1 = ctx.createGain();
+    carrierOsc.connect(carrierMix1);
+
+    carrierOscDetune = ctx.createOscillator(); carrierMix2 = ctx.createGain();
+    carrierOscDetune.connect(carrierMix2);
+
+    carrierOscH2 = ctx.createOscillator(); harmonicGain = ctx.createGain();
+    carrierOscH2.connect(harmonicGain);
+
+    const mainSum = ctx.createGain();
+    carrierMix1.connect(mainSum); carrierMix2.connect(mainSum); harmonicGain.connect(mainSum);
+
+    amGainL = ctx.createGain(); amGainR = ctx.createGain();
+    balL = ctx.createGain(); balR = ctx.createGain();
+    mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
+    mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
+
+    delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);
+    depthGainL = ctx.createGain(); depthGainR = ctx.createGain();
+    delayModL.connect(depthGainL); delayModR.connect(depthGainR);
+    depthGainL.connect(amGainL.gain); depthGainR.connect(amGainR.gain);
+
+    amGainDetune = ctx.createGain(); amGainDetune.gain.value = 0;
+    carrierMix2.connect(amGainDetune); amGainDetune.connect(analyserDetune);
+    depthGainL.connect(amGainDetune.gain);
+
+    sweepShaper = ctx.createWaveShaper();
+    sweepLFOGain = ctx.createGain();
+    subSweepGain = ctx.createGain(); subSweepGain.gain.value = 0.5;
+    sweepShaper.connect(sweepLFOGain);
+    sweepLFOGain.connect(carrierOsc.frequency);
+    sweepLFOGain.connect(carrierOscDetune.frequency);
+    sweepLFOGain.connect(subSweepGain); subSweepGain.connect(carrierOscH2.frequency);
+
+    detuneConstant = ctx.createConstantSource();
+    detuneConstant.connect(carrierOscDetune.frequency);
+
+    carrierOsc.start(); carrierOscDetune.start(); carrierOscH2.start(); detuneConstant.start();
+
+    updateModBuffer();
+    updateAudioParams();
+    audioInit = true;
+}
+
+let currentPhaseIntegrator = 0;
+function updateModBuffer() {
+    if (!ctx) return;
+    const size = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    const ratio = state.ratio / 100;
+    for (let i = 0; i < size; i++) data[i] = Math.sin(2 * Math.PI * warpPhase(i/size, ratio));
+
+    const newOsc = ctx.createBufferSource();
+    newOsc.buffer = buf; newOsc.loop = true;
+    newOsc.playbackRate.value = state.hold ? 0 : state.rythm;
+    newOsc.connect(sweepShaper); newOsc.connect(delayModL); newOsc.connect(delayModR);
+
+    const now = ctx.currentTime;
+    newOsc.start(now, (currentPhaseIntegrator % 1.0) * buf.duration);
+    if (modOsc) { modOsc.stop(now); try { modOsc.disconnect(); } catch(e) {} }
+    modOsc = newOsc;
+}
+
+function updateAudioParams() {
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    masterG.gain.setTargetAtTime(state.playing ? state.volume / 100 : 0, now, 0.05);
+    if (modOsc) modOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.rythm, now, 0.05);
+
+    // Forme d'onde appliquée à la porteuse principale + détune.
+    // La sous-octave (carrierOscH2) reste sinus pour des basses propres.
+    const wf = state.waveform || 'sine';
+    if (carrierOsc.type !== wf) { carrierOsc.type = wf; carrierOscDetune.type = wf; }
+
+    const cf = state.sweepActive ? (state.sweepLo + state.sweepHi)/2 : state.freq;
+    carrierOsc.frequency.setTargetAtTime(cf, now, 0.05);
+    carrierOscH2.frequency.setTargetAtTime(cf/2, now, 0.05);
+    carrierOscDetune.frequency.setTargetAtTime(cf, now, 0.05);
+    detuneConstant.offset.setTargetAtTime(state.detuneOffset, now, 0.05);
+
+    const hRaw = state.subOctave / 100;
+    const h = cf < 100 ? 0 : hRaw * subOctaveHMax(cf);
+    const d = state.detuneDepth / 100;
+    carrierMix1.gain.setTargetAtTime((1-h)*(1-d/2), now, 0.05);
+    carrierMix2.gain.setTargetAtTime((1-h)*(d/2), now, 0.05);
+    harmonicGain.gain.setTargetAtTime(h, now, 0.05);
+
+    const depth = state.depth / 100;
+    const amBase = 1.0 - depth/2;
+    amGainL.gain.setTargetAtTime(amBase, now, 0.05);
+    amGainR.gain.setTargetAtTime(amBase, now, 0.05);
+    amGainDetune.gain.setTargetAtTime(amBase, now, 0.05);
+    depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);
+    depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);
+
+    balL.gain.setTargetAtTime(state.balance > 0 ? 1 - state.balance/100 : 1, now, 0.05);
+    balR.gain.setTargetAtTime(state.balance < 0 ? 1 + state.balance/100 : 1, now, 0.05);
+
+    let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;
+    delaySecs = Math.min(delaySecs, 5.0);
+    delayModL.delayTime.setTargetAtTime(state.phase < 0 ? delaySecs : 0, now, 0.05);
+    delayModR.delayTime.setTargetAtTime(state.phase > 0 ? delaySecs : 0, now, 0.05);
+
+    let sr = state.sweepActive ? (state.sweepHi - state.sweepLo)/2 : 0;
+    if (state.invertSweep) sr = -sr;
+    sweepLFOGain.gain.setTargetAtTime(sr, now, 0.05);
+
+    if (state.doubleSweep && state.sweepActive) {
+        const c = new Float32Array(2048);
+        for (let i = 0; i < 2048; i++) c[i] = 2 * Math.abs((i/2047)*2 - 1) - 1;
+        sweepShaper.curve = c;
+    } else {
+        const c = new Float32Array([-1, 1]);
+        sweepShaper.curve = c;
+    }
+}
+
+// --- WAVEFORM SELECTOR ---
+// Glyphes SVG (currentColor → suivent la couleur du bouton, actif ou non).
+const WAVEFORMS = [
+    { id:'sine',     label:'Sinus',    d:'M2,8 Q6.5,1 11,8 T20,8' },
+    { id:'square',   label:'Carré',    d:'M2,13 L2,4 L9,4 L9,13 L16,13 L16,4 L22,4' },
+    { id:'triangle', label:'Triangle', d:'M2,13 L7,4 L12,13 L17,4 L22,13' },
+    { id:'sawtooth', label:'Scie',     d:'M2,13 L9,4 L9,13 L16,4 L16,13 L22,4' }
+];
+
+function renderWaveSelect() {
+    const box = document.getElementById('waveSelect');
+    if (!box) return;
+    box.innerHTML = '';
+    WAVEFORMS.forEach(w => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wave-btn';
+        b.setAttribute('aria-pressed', state.waveform === w.id ? 'true' : 'false');
+        b.setAttribute('aria-label', "Forme d'onde " + w.label);
+        b.innerHTML =
+            '<svg class="wave-glyph" viewBox="0 0 24 16" fill="none" stroke="currentColor" ' +
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="' + w.d + '"></path></svg>' +
+            '<span>' + w.label + '</span>';
+        b.addEventListener('click', () => {
+            if (state.waveform === w.id) return;
+            state.waveform = w.id;
+            renderWaveSelect();
+            if (audioInit) updateAudioParams();
+            saveState();
+        });
+        box.appendChild(b);
+    });
+}
+
+// --- KNOBS (grid sliders) ---
+const knobsDef = [
+    { id:'freq',     label:'Fréquence', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },
+    { id:'volume',   label:'Volume',    min:0,   max:100,  step:1,    color:'#9c5e16', fmt: v => v+' %' },
+    { id:'rythm',    label:'Rythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
+    { id:'depth',    label:'Depth',     min:0,   max:100,  step:1,    color:'#1f7a4d', fmt: v => v+' %' },
+    { id:'emphasis', label:'Emphasis',  min:0,   max:100,  step:1,    color:'#6d3f80', fmt: v => v+' %', disabled:true },
+    { id:'ratio',    label:'Ratio',     min:20,  max:80,   step:1,    color:'#a04335', fmt: v => v+'/'+(100-v) }
+];
+const knobRefs = {};
+
+function holdRepeat(el, fn) {
+    let timer = null;
+    const go = (e) => { e.preventDefault(); fn(); timer = setTimeout(function tick(){ fn(); timer = setTimeout(tick, 80); }, 400); };
+    const stop = () => { clearTimeout(timer); timer = null; };
+    el.addEventListener('mousedown', go);
+    el.addEventListener('touchstart', go, { passive: false });
+    window.addEventListener('mouseup', stop);
+    window.addEventListener('touchend', stop);
+    // Accessibilité clavier : Entrée / Espace déclenchent un pas
+    el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.code === 'Space') { e.preventDefault(); fn(); }
+    });
+}
+
+function renderKnobs() {
+    const grid = document.getElementById('knobsGrid');
+    grid.innerHTML = '';
+    knobsDef.forEach(k => {
+        const wrap = document.createElement('div');
+        wrap.className = 'slider-wrap' + (k.disabled ? ' disabled-slider' : '');
+        wrap.id = 'wrap_' + k.id;
+
+        const hdr = document.createElement('div');
+        hdr.className = 'slider-header';
+
+        const lbl = document.createElement('label');
+        lbl.className = 'slider-label';
+        lbl.textContent = k.label;
+        lbl.setAttribute('for', 'knob_' + k.id);
+
+        const valEl = document.createElement('span');
+        valEl.className = 'slider-val';
+        valEl.id = 'val_' + k.id;
+
+        hdr.appendChild(lbl); hdr.appendChild(valEl);
+
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.className = 'knob-slider';
+        input.id = 'knob_' + k.id;
+        input.min = k.min; input.max = k.max; input.step = k.step;
+        input.setAttribute('aria-label', k.label);
+        if (k.disabled) input.disabled = true;
+        const cur = (state[k.id] !== undefined) ? state[k.id] : k.min;
+        input.value = cur;
+        input.style.setProperty('--thumb-color', k.color);
+
+        const setTrack = (v) => {
+            const pct = Math.max(0, Math.min(100, ((v - k.min) / (k.max - k.min)) * 100));
+            input.style.setProperty('--fill-pct', pct + '%');
+        };
+        setTrack(cur);
+        valEl.textContent = k.fmt(cur);
+
+        input.addEventListener('input', () => {
+            if (k.id === 'freq' && state.sweepActive) return;
+            const v = Math.round(parseFloat(input.value) / k.step) * k.step;
+            state[k.id] = v;
+            setTrack(v); valEl.textContent = k.fmt(v);
+            if (k.id === 'ratio') updateModBuffer();
+            if (audioInit) updateAudioParams();
+            saveState(); updateHSDisplays();
+        });
+
+        const btnRow = document.createElement('div');
+        btnRow.className = 'knob-btn-row';
+        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'knob-btn'; btnM.textContent = '−';
+        btnM.setAttribute('aria-label', 'Diminuer ' + k.label);
+        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'knob-btn'; btnP.textContent = '+';
+        btnP.setAttribute('aria-label', 'Augmenter ' + k.label);
+        if (k.disabled) { btnM.disabled = true; btnP.disabled = true; }
+
+        const updateKnob = (nv) => {
+            if (k.id === 'freq' && state.sweepActive) return;
+            nv = Math.round(Math.max(k.min, Math.min(k.max, nv)) / k.step) * k.step;
+            state[k.id] = nv;
+            input.value = nv;
+            setTrack(nv); valEl.textContent = k.fmt(nv);
+            if (k.id === 'ratio') updateModBuffer();
+            if (audioInit) updateAudioParams();
+            saveState(); updateHSDisplays();
+        };
+        holdRepeat(btnM, () => updateKnob(state[k.id] - k.step));
+        holdRepeat(btnP, () => updateKnob(state[k.id] + k.step));
+
+        btnRow.appendChild(btnM); btnRow.appendChild(btnP);
+        wrap.appendChild(hdr); wrap.appendChild(input); wrap.appendChild(btnRow);
+        grid.appendChild(wrap);
+        knobRefs[k.id] = { input, valEl, def: k, setTrack };
+    });
+}
+
+function syncKnob(id, overrideVal) {
+    const r = knobRefs[id];
+    if (!r) return;
+    const v = overrideVal !== undefined ? overrideVal : state[id];
+    r.valEl.textContent = r.def.fmt(v);
+    r.input.value = v;
+    r.setTrack(v);
+}
+
+// --- HORIZONTAL SLIDERS ---
+const hsDef = [
+    { id:'balance',      label:'Balance',            min:-100, max:100,  step:1   },
+    { id:'phase',        label:'Déphasage L/R',      min:-45,  max:45,   step:1   },
+    { id:'detuneOffset', label:'Détune Offset',      min:-2.5, max:2.5,  step:0.1 },
+    { id:'detuneDepth',  label:'Profondeur Détune',  min:0,    max:100,  step:1   },
+    { id:'subOctave',    label:'Sous-octave (Bass)', min:0,    max:100,  step:1   }
+];
+const hsRefs = {};
+
+function fmtHS(id, v) {
+    v = +v;
+    if (id === 'balance')      return v === 0 ? 'Centre' : (v < 0 ? `◀ L ${-v}` : `R ${v} ▶`);
+    if (id === 'phase')        return v === 0 ? 'Synchro' : (v > 0 ? `L mène ${v}°` : `R mène ${-v}°`);
+    if (id === 'detuneOffset') return v === 0 ? 'Synchro' : `${v>0?'+':''}${v.toFixed(1)} Hz`;
+    if (id === 'detuneDepth')  return v + ' %';
+    if (id === 'subOctave') {
+        const cf = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
+        return cf < 100 ? '(muet)' : `${v} % (${(cf/2).toFixed(0)} Hz)`;
+    }
+    return v;
+}
+
+function renderSliders() {
+    const wrap = document.getElementById('slidersWrap');
+    wrap.innerHTML = '';
+    hsDef.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'hs-row';
+
+        const lblRow = document.createElement('div');
+        lblRow.className = 'hs-label-row';
+        const lbl = document.createElement('label'); lbl.textContent = s.label; lbl.setAttribute('for', 'hs_' + s.id);
+        const valEl = document.createElement('span'); valEl.className = 'hs-val'; valEl.id = 'hsval_' + s.id;
+        lblRow.appendChild(lbl); lblRow.appendChild(valEl);
+
+        const cw = document.createElement('div'); cw.className = 'horiz-slider-wrap';
+        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'hs-btn'; btnM.textContent = '−';
+        btnM.setAttribute('aria-label', 'Diminuer ' + s.label);
+        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'hs-btn'; btnP.textContent = '+';
+        btnP.setAttribute('aria-label', 'Augmenter ' + s.label);
+        const range = document.createElement('input'); range.type = 'range';
+        range.className = 'hs-range';
+        range.id = 'hs_' + s.id;
+        range.setAttribute('aria-label', s.label);
+        range.min = s.min; range.max = s.max; range.step = s.step;
+        const cur = (state[s.id] !== undefined) ? state[s.id] : 0;
+        range.value = cur;
+        valEl.textContent = fmtHS(s.id, cur);
+
+        const setHSTrack = (v) => {
+            const pct = Math.max(0, Math.min(100, ((v - s.min) / (s.max - s.min)) * 100));
+            range.style.setProperty('--hs-fill', pct + '%');
+        };
+        setHSTrack(cur);
+
+        cw.appendChild(btnM); cw.appendChild(range); cw.appendChild(btnP);
+        row.appendChild(lblRow); row.appendChild(cw);
+        wrap.appendChild(row);
+
+        const update = (nv) => {
+            nv = Math.round(Math.max(s.min, Math.min(s.max, nv)) / s.step) * s.step;
+            state[s.id] = nv;
+            range.value = nv;
+            valEl.textContent = fmtHS(s.id, nv);
+            setHSTrack(nv);
+            if (audioInit) updateAudioParams();
+            saveState();
+        };
+        range.addEventListener('input', e => update(parseFloat(e.target.value)));
+        holdRepeat(btnM, () => update(state[s.id] - s.step));
+        holdRepeat(btnP, () => update(state[s.id] + s.step));
+
+        hsRefs[s.id] = { range, valEl };
+    });
+}
+
+function updateHSDisplays() {
+    hsDef.forEach(s => {
+        const el = document.getElementById('hsval_' + s.id);
+        if (el) el.textContent = fmtHS(s.id, state[s.id]);
+    });
+}
+
+function syncAllUI() {
+    renderWaveSelect();
+    renderKnobs();
+    renderSliders();
+    updateSweepUI();
+    document.getElementById('invertToggle').checked = !!state.invertSweep;
+    document.getElementById('doubleToggle').checked = !!state.doubleSweep;
+}
+
+// --- SWEEP ---
+let sWrap, sFill, sH1, sH2, sBody;
+
+function updateSweepUI() {
+    const minF = 50, maxF = 1200;
+    const w = sWrap.offsetWidth - 24;
+    const p1 = (state.sweepLo - minF) / (maxF - minF);
+    const p2 = (state.sweepHi - minF) / (maxF - minF);
+    sH1.style.left = `calc(12px + ${p1*w}px)`;
+    sH2.style.left = `calc(12px + ${p2*w}px)`;
+    sFill.style.left = `calc(12px + ${p1*w}px)`;
+    sFill.style.width = `${(p2-p1)*w}px`;
+    document.getElementById('sweepLabel').textContent = `${state.sweepLo} Hz — ${state.sweepHi} Hz`;
+    sBody.style.opacity = state.sweepActive ? '1' : '0.5';
+    sBody.style.pointerEvents = state.sweepActive ? 'auto' : 'none';
+    document.getElementById('sweepToggle').checked = state.sweepActive;
+    const fw = document.getElementById('wrap_freq');
+    if (fw) {
+        fw.classList.toggle('knob-sweep-active', state.sweepActive);
+        if (!state.sweepActive) syncKnob('freq');
+    }
+}
+
+function bindSweep() {
+    let drag = null, sx, sLo, sHi;
+    const onStart = (type, e) => {
+        drag = type; sx = e.touches ? e.touches[0].clientX : e.clientX;
+        sLo = state.sweepLo; sHi = state.sweepHi;
+        e.preventDefault();
+    };
+    const onMove = (e) => {
+        if (!drag) return;
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const w = sWrap.offsetWidth - 24;
+        const df = Math.round(((x - sx) / w) * 1150 / 10) * 10;
+        if (drag === 'h1')   state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, sLo+df));
+        else if (drag === 'h2') state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, sHi+df));
+        else if (drag === 'fill') {
+            const span = sHi - sLo;
+            let lo = sLo+df, hi = sHi+df;
+            if (lo < 50) { lo=50; hi=lo+span; }
+            if (hi > 1200) { hi=1200; lo=hi-span; }
+            state.sweepLo=lo; state.sweepHi=hi;
+        }
+        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays();
+    };
+    const onEnd = () => { if (drag) { drag=null; saveState(); } };
+
+    ['mousedown','touchstart'].forEach(ev => {
+        const opts = ev === 'touchstart' ? {passive:false} : {};
+        sH1.addEventListener(ev, e => onStart('h1',e), opts);
+        sH2.addEventListener(ev, e => onStart('h2',e), opts);
+        sFill.addEventListener(ev, e => onStart('fill',e), opts);
+    });
+    window.addEventListener('mousemove', onMove, {passive:false});
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchend', onEnd);
+
+    // Accessibilité clavier des poignées de sweep
+    const kbHandle = (which) => (e) => {
+        const stepKeys = { ArrowLeft:-10, ArrowDown:-10, ArrowRight:10, ArrowUp:10 };
+        if (!(e.key in stepKeys)) return;
+        e.preventDefault();
+        const d = stepKeys[e.key];
+        if (which === 'h1') state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, state.sweepLo + d));
+        else state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, state.sweepHi + d));
+        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+    };
+    sH1.addEventListener('keydown', kbHandle('h1'));
+    sH2.addEventListener('keydown', kbHandle('h2'));
+
+    document.getElementById('sweepToggle').addEventListener('change', e => {
+        state.sweepActive = e.target.checked;
+        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+    });
+    document.getElementById('invertToggle').addEventListener('change', e => {
+        state.invertSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();
+    });
+    document.getElementById('doubleToggle').addEventListener('change', e => {
+        state.doubleSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();
+    });
+}
+
+// --- PRESETS ---
+function renderPresets() {
+    const bi = document.getElementById('builtinPresets');
+    bi.innerHTML = '';
+    BUILTIN_PRESETS.forEach(p => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'preset-btn'; b.textContent = p.name;
+        b.addEventListener('click', () => applyPreset(p.state));
+        bi.appendChild(b);
+    });
+    renderUserPresets();
+}
+
+function renderUserPresets() {
+    const row = document.getElementById('userPresets');
+    row.innerHTML = '';
+    loadUserPresets().forEach((p, i) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'preset-btn preset-user';
+        b.appendChild(document.createTextNode(p.name + ' '));
+        const x = document.createElement('span');
+        x.className = 'preset-del';
+        x.textContent = '✕';
+        x.dataset.idx = i;
+        x.setAttribute('role', 'button');
+        x.setAttribute('aria-label', 'Supprimer le préréglage ' + p.name);
+        b.appendChild(x);
+        b.addEventListener('click', e => {
+            if (e.target.dataset.idx !== undefined) {
+                const list = loadUserPresets(); list.splice(+e.target.dataset.idx, 1);
+                saveUserPresets(list); renderUserPresets();
+            } else { applyPreset(p.state); }
+        });
+        row.appendChild(b);
+    });
+}
+
+// --- VISUALIZERS ---
+let scopeCanvas, vuCanvas, sCtx, vCtx;
+const bufL = new Float32Array(2048), bufR = new Float32Array(2048), bufD = new Float32Array(2048);
+let dpr = 1;
+
+function initCanvas() {
+    dpr = window.devicePixelRatio || 1;
+    const w1 = scopeCanvas.offsetWidth || 280;
+    const w2 = vuCanvas.offsetWidth || 30;
+    const hh = scopeCanvas.offsetHeight || 96;
+    scopeCanvas.width = w1 * dpr; scopeCanvas.height = hh * dpr;
+    vuCanvas.width = w2 * dpr;   vuCanvas.height = hh * dpr;
+    sCtx.setTransform(1,0,0,1,0,0); vCtx.setTransform(1,0,0,1,0,0);
+    sCtx.scale(dpr, dpr); vCtx.scale(dpr, dpr);
+}
+
+function drawScope() {
+    const w = scopeCanvas.offsetWidth || 280, h = scopeCanvas.offsetHeight || 96;
+    sCtx.fillStyle = '#0a151a';
+    sCtx.fillRect(0, 0, w, h);
+    sCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+    sCtx.lineWidth = 1;
+    sCtx.beginPath();
+    for (let x = 0; x < w; x += 28) { sCtx.moveTo(x,0); sCtx.lineTo(x,h); }
+    for (let y = 0; y < h; y += 28) { sCtx.moveTo(0,y); sCtx.lineTo(w,y); }
+    sCtx.stroke();
+
+    if (!ctx || !state.playing) return;
+    analyserL.getFloatTimeDomainData(bufL);
+    analyserR.getFloatTimeDomainData(bufR);
+
+    const trace = (buf, color, lw) => {
+        sCtx.beginPath(); sCtx.strokeStyle = color; sCtx.lineWidth = lw;
+        for (let i = 0; i < buf.length; i += 4) {
+            const x = (i/buf.length)*w, y = (0.5 - buf[i]*0.5)*h;
+            i === 0 ? sCtx.moveTo(x,y) : sCtx.lineTo(x,y);
+        }
+        sCtx.stroke();
+    };
+
+    if (state.detuneDepth > 0) {
+        analyserDetune.getFloatTimeDomainData(bufD);
+        const cf2 = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
+        const h2 = cf2 < 100 ? 0 : (state.subOctave/100) * subOctaveHMax(cf2);
+        const sc = (1-h2)*(state.detuneDepth/100/2)*(state.volume/100);
+        for (let i = 0; i < bufD.length; i++) bufD[i] *= sc;
+        trace(bufD, 'rgba(240,150,60,0.8)', 1.5);
+    }
+    trace(bufL, '#3b86d6', 2.5);
+    trace(bufR, '#ff5c69', 2.5);
+
+    let pkL = 0, pkR = 0;
+    for (let i = 0; i < bufL.length; i++) {
+        if (Math.abs(bufL[i]) > pkL) pkL = Math.abs(bufL[i]);
+        if (Math.abs(bufR[i]) > pkR) pkR = Math.abs(bufR[i]);
+    }
+    const vw = vuCanvas.offsetWidth || 30;
+    vCtx.clearRect(0,0,vw,h);
+    vCtx.fillStyle = '#3b86d6'; vCtx.fillRect(2, h-pkL*h, vw/2-3, pkL*h);
+    vCtx.fillStyle = '#ff5c69'; vCtx.fillRect(vw/2+1, h-pkR*h, vw/2-3, pkR*h);
+}
+
+let lastTime = performance.now();
+function animate() {
+    const now = performance.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+
+    if (state.playing && !state.hold) {
+        currentPhaseIntegrator = (currentPhaseIntegrator + dt * state.rythm) % 1.0;
     }
 
-    setStatus('Rendering...');
-    for (const uuid of uuids) template = template.split(uuid).join(blobUrls[uuid]);
-
-    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
-    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
-    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
-    template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
-
-    const resourceScript = '<script>window.__resources = ' +
-      JSON.stringify(resourceMap).split('</' + 'script>').join('<\\/' + 'script>') +
-      ';</' + 'script>';
-    // Inject after <head> so the DOCTYPE stays first; prepending the script
-    // would push the parser into quirks mode. DOMParser always emits a <head>
-    // (synthesizing one if the source HTML omitted it) but may carry
-    // attributes through, so match the full opening tag. slice() rather than
-    // replace() keeps us clear of $-pattern substitution in resourceScript.
-    const headOpen = template.match(/<head[^>]*>/i);
-    if (headOpen) {
-      const i = headOpen.index + headOpen[0].length;
-      template = template.slice(0, i) + resourceScript + template.slice(i);
+    if (state.sweepActive && state.playing && !state.hold) {
+        let lfo = Math.sin(2*Math.PI*warpPhase(currentPhaseIntegrator, state.ratio/100));
+        if (state.doubleSweep) lfo = 2*Math.abs(lfo)-1;
+        if (state.invertSweep) lfo = -lfo;
+        const instFreq = (state.sweepLo+state.sweepHi)/2 + (state.sweepHi-state.sweepLo)/2*lfo;
+        const r = knobRefs['freq'];
+        if (r) r.valEl.textContent = r.def.fmt(Math.round(instFreq));
     }
 
-    // Parse the template and swap the root element. Scripts inserted via
-    // DOMParser/replaceWith are inert per spec — re-create each with
-    // createElement so they execute, awaiting onload for src scripts to
-    // preserve ordering (React before ReactDOM before Babel before text/babel).
-    const doc = new DOMParser().parseFromString(template, 'text/html');
-    document.documentElement.replaceWith(doc.documentElement);
-    const dead = Array.from(document.scripts);
-    for (const old of dead) {
-      const s = document.createElement('script');
-      for (const a of old.attributes) s.setAttribute(a.name, a.value);
-      s.textContent = old.textContent;
-      // text/babel scripts with a src: fetch and inline. transformScriptTags
-      // does XHR against the src, but blob:null/ from a file:// origin is
-      // silently dropped. Inlining makes it a plain inline babel script,
-      // which transformScriptTags handles unconditionally.
-      if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
-        const r = await fetch(s.src);
-        s.textContent = await r.text();
-        s.removeAttribute('src');
-      }
-      const p = s.src ? new Promise(function(r) { s.onload = s.onerror = r; }) : null;
-      old.replaceWith(s);
-      if (p) await p;
+    drawScope();
+    requestAnimationFrame(animate);
+}
+
+// --- PLAY / HOLD ---
+function togglePlay() {
+    state.playing = !state.playing;
+    const btn = document.getElementById('btnPlay');
+    if (state.playing) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.innerHTML = '<span class="icon" aria-hidden="true">■</span><span>Stop</span>';
+    } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.innerHTML = '<span class="icon" aria-hidden="true">▶</span><span>Play</span>';
     }
-    // Babel standalone auto-transforms type=text/babel on DOMContentLoaded,
-    // which fired before we swapped the document. Trigger manually if present.
-    if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
-      window.Babel.transformScriptTags();
+    if (audioInit) updateAudioParams();
+}
+
+// --- DEVICE SELECTOR ---
+function setupDevices() {
+    const sel = document.getElementById('deviceSelect');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+        const ds = document.getElementById('deviceSection');
+        if (ds) ds.style.display = 'none';
+        document.getElementById('iosDeviceMsg').style.display = 'block';
+    } else {
+        navigator.mediaDevices && navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                devices.filter(d => d.kind === 'audiooutput').forEach((d, i) => {
+                    const o = document.createElement('option');
+                    o.value = d.deviceId; o.text = d.label || `Speaker ${i+1}`;
+                    sel.appendChild(o);
+                });
+            });
+        }).catch(() => {});
+        sel.addEventListener('change', e => {
+            if (ctx && typeof ctx.setSinkId === 'function') ctx.setSinkId(e.target.value).catch(console.error);
+        });
     }
-  } catch (err) {
-    setStatus('Error unpacking: ' + err.message);
-    console.error('Bundle unpack error:', err);
-  }
+}
+
+// --- BOOT ---
+window.addEventListener('load', () => {
+    sWrap = document.getElementById('sweepSlider');
+    sFill = document.getElementById('sweepFill');
+    sH1   = document.getElementById('sweepH1');
+    sH2   = document.getElementById('sweepH2');
+    sBody = document.getElementById('sweepBody');
+    scopeCanvas = document.getElementById('scopeCanvas');
+    vuCanvas    = document.getElementById('vuCanvas');
+    sCtx = scopeCanvas.getContext('2d');
+    vCtx = vuCanvas.getContext('2d');
+
+    loadState();
+    renderWaveSelect();
+    renderKnobs();
+    renderSliders();
+    bindSweep();
+    renderPresets();
+
+    document.getElementById('btnPlay').addEventListener('click', () => {
+        if (!audioInit) initAudio();
+        if (ctx.state === 'suspended') ctx.resume().then(togglePlay);
+        else togglePlay();
+    });
+    document.getElementById('btnHold').addEventListener('click', () => {
+        state.hold = !state.hold;
+        const hb = document.getElementById('btnHold');
+        hb.classList.toggle('active', state.hold);
+        hb.setAttribute('aria-pressed', state.hold ? 'true' : 'false');
+        if (audioInit) updateAudioParams();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+        if (e.code === 'Space' && (e.target === document.body)) { e.preventDefault(); document.getElementById('btnPlay').click(); }
+        else if (e.key === 'h' || e.key === 'H') document.getElementById('btnHold').click();
+    });
+
+    document.getElementById('btnSavePreset').addEventListener('click', () => {
+        const name = document.getElementById('presetNameInput').value.trim();
+        if (!name) return;
+        const list = loadUserPresets();
+        const ps = Object.assign({}, state);
+        list.push({ name, state: ps });
+        saveUserPresets(list);
+        document.getElementById('presetNameInput').value = '';
+        renderUserPresets();
+    });
+
+    document.getElementById('invertToggle').checked = !!state.invertSweep;
+    document.getElementById('doubleToggle').checked = !!state.doubleSweep;
+    setupDevices();
+
+    function waitForLayout(attempts) {
+        initCanvas();
+        updateSweepUI();
+        if (sWrap.offsetWidth < 10 && attempts > 0) {
+            setTimeout(() => waitForLayout(attempts - 1), 50);
+        }
+    }
+    requestAnimationFrame(() => waitForLayout(10));
+    requestAnimationFrame(animate);
+    window.addEventListener('resize', () => { initCanvas(); updateSweepUI(); });
 });
 
-  </script>
+</script>
 
-  <script type="__bundler/manifest">
-{}
-  </script>
 
-  <script type="__bundler/ext_resources">
-[]
-  </script>
-
-  <script type="__bundler/template">
-"<!DOCTYPE html>\n<html lang=\"fr\"><head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover\">\n    <meta name=\"theme-color\" content=\"#0e3a48\">\n    <title>Wave Generator<\u002Ftitle>\n    <style>\n        *, *::before, *::after { box-sizing: border-box; }\n\n        :root {\n            /* Marque */\n            --brand:        #0e5366;   /* teal app */\n            --brand-deep:   #0a3a48;   /* teal foncé (header / barres) */\n            --bg:           #07171d;   /* fond global */\n            --surface:      #fbfbfa;   /* cartes claires */\n            --surface-2:    rgba(255,255,255,0.07); /* panneaux translucides */\n            --line:         rgba(255,255,255,0.12);\n            /* Texte — contrastes WCAG AA vérifiés */\n            --on-brand:     #ffffff;        /* blanc sur teal = 5.8:1  AA */\n            --ink:          #16242b;        /* texte sur surface claire */\n            --ink-soft:     #4a5860;        /* valeurs / secondaire ≈ 5:1 */\n            --ink-mute:     #5e6c73;\n            /* Actions */\n            --go:           #1f9d57;   /* play actif */\n            --stop:         #c8372f;   /* stop */\n            --hold:         #b8860b;   /* hold actif */\n            --focus:        #ffd24a;   /* anneau de focus (haut contraste) */\n            --radius:       16px;\n        }\n\n        html, body { height: 100%; }\n        body {\n            background: var(--bg);\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n            margin: 0;\n            color: var(--on-brand);\n            touch-action: pan-y;\n            -webkit-text-size-adjust: 100%;\n        }\n\n        /* ---- Plein écran, plus de faux cadre de téléphone ---- */\n        .app {\n            min-height: 100%;\n            background: var(--brand);\n            max-width: 520px;        /* limité seulement sur tablette/desktop */\n            margin: 0 auto;\n            display: flex;\n            flex-direction: column;\n        }\n\n        /* ---- Header collant ---- */\n        .app-header {\n            position: sticky;\n            top: 0;\n            z-index: 20;\n            background: var(--brand-deep);\n            border-bottom: 1px solid var(--line);\n            padding: calc(env(safe-area-inset-top) + 12px) 18px 12px;\n            display: flex;\n            align-items: center;\n            justify-content: space-between;\n            gap: 12px;\n        }\n        .app-header h1 {\n            font-size: 1.15rem;\n            font-weight: 700;\n            letter-spacing: 0.02em;\n            margin: 0;\n        }\n        .header-vu {\n            display: flex;\n            gap: 4px;\n            align-items: flex-end;\n            height: 22px;\n        }\n        .header-vu span {\n            width: 4px; border-radius: 2px;\n            background: rgba(255,255,255,0.35);\n        }\n\n        /* ---- Zone scrollable ---- */\n        .scroller {\n            flex: 1;\n            overflow-y: auto;\n            -webkit-overflow-scrolling: touch;\n            padding: 16px 16px calc(env(safe-area-inset-bottom) + 116px);\n            padding-left: max(16px, env(safe-area-inset-left));\n            padding-right: max(16px, env(safe-area-inset-right));\n        }\n\n        /* ---- Visualiseur ---- */\n        .vis-container {\n            display: flex;\n            gap: 8px;\n            height: 96px;\n            margin-bottom: 16px;\n        }\n        .scope-canvas {\n            flex-grow: 1;\n            background: #0a151a;\n            border-radius: 12px;\n            display: block;\n            border: 1px solid var(--line);\n        }\n        .vu-canvas {\n            width: 30px;\n            flex-shrink: 0;\n            background: #0a151a;\n            border-radius: 12px;\n            display: block;\n            border: 1px solid var(--line);\n        }\n\n        /* ---- Cartes ---- */\n        .card {\n            background: var(--surface);\n            border-radius: var(--radius);\n            padding: 16px 14px;\n            margin-bottom: 14px;\n            color: var(--ink);\n            box-shadow: 0 6px 18px rgba(0,0,0,0.28);\n        }\n        .panel {\n            background: var(--surface-2);\n            border: 1px solid var(--line);\n            border-radius: var(--radius);\n            padding: 16px 14px;\n            margin-bottom: 14px;\n        }\n        .section-title {\n            display: flex;\n            align-items: center;\n            gap: 8px;\n            font-weight: 700;\n            font-size: 1rem;\n            margin-bottom: 12px;\n        }\n\n        /* ---- Grille de knobs ---- */\n        .sliders-grid {\n            display: grid;\n            grid-template-columns: 1fr 1fr;\n            gap: 18px 16px;\n        }\n        .slider-wrap {\n            display: flex;\n            flex-direction: column;\n            gap: 8px;\n        }\n        .slider-wrap.disabled-slider { opacity: 0.4; }\n        .slider-wrap.knob-sweep-active { opacity: 0.5; pointer-events: none; }\n        .slider-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: baseline;\n            gap: 6px;\n        }\n        .slider-label { font-size: 0.9rem; font-weight: 700; color: var(--ink); }\n        .slider-val   { font-size: 0.82rem; font-family: ui-monospace, \"SF Mono\", Menlo, monospace; color: var(--ink-soft); }\n\n        .knob-btn-row {\n            display: flex;\n            gap: 8px;\n        }\n        .knob-btn, .hs-btn {\n            background: #e8eef0;\n            border: 1.5px solid #5d717a;   /* contour ≥3:1 sur la carte claire (1.4.11) */\n            border-radius: 10px;\n            font-size: 1.5rem;\n            font-weight: 700;\n            line-height: 1;\n            color: #12343d;\n            display: flex; align-items: center; justify-content: center;\n            cursor: pointer;\n            user-select: none;\n            touch-action: none;\n            -webkit-tap-highlight-color: transparent;\n        }\n        .knob-btn {\n            flex: 1;\n            height: 44px;                  /* cible tactile 44px (2.5.5 AAA) */\n        }\n        .knob-btn:active, .hs-btn:active { background: #c3d0d4; }\n        button:disabled { cursor: default; }\n\n        /* ---- Sliders verticaux (knobs) ---- */\n        .knob-slider, .hs-range {\n            -webkit-appearance: none;\n            appearance: none;\n            width: 100%;\n            height: 34px;                  /* hauteur tactile généreuse */\n            background: transparent;\n            outline: none;\n            cursor: pointer;\n            padding: 0; margin: 0;\n        }\n        .knob-slider::-webkit-slider-runnable-track {\n            height: 10px; border-radius: 5px;\n            background: linear-gradient(to right,\n                var(--thumb-color, #0f6b7a) var(--fill-pct, 0%),\n                #d4dadd var(--fill-pct, 0%));\n        }\n        .knob-slider::-webkit-slider-thumb {\n            -webkit-appearance: none;\n            width: 28px; height: 28px;\n            margin-top: -9px;\n            border-radius: 50%;\n            background: var(--thumb-color, #0f6b7a);\n            border: 3px solid #fff;\n            box-shadow: 0 1px 5px rgba(0,0,0,0.45);\n        }\n        .knob-slider::-moz-range-track { height: 10px; border-radius: 5px; background: #d4dadd; }\n        .knob-slider::-moz-range-progress { height: 10px; border-radius: 5px; background: var(--thumb-color, #0f6b7a); }\n        .knob-slider::-moz-range-thumb {\n            width: 28px; height: 28px; border-radius: 50%;\n            background: var(--thumb-color, #0f6b7a); border: 3px solid #fff;\n        }\n\n        /* ---- Sliders horizontaux ---- */\n        .hs-row { margin-bottom: 16px; }\n        .hs-row:last-child { margin-bottom: 0; }\n        .hs-label-row {\n            display: flex;\n            justify-content: space-between;\n            align-items: baseline;\n            font-size: 0.9rem;\n            font-weight: 700;\n            margin-bottom: 8px;\n            color: var(--ink);\n        }\n        .hs-val { font-family: ui-monospace, \"SF Mono\", Menlo, monospace; color: var(--ink-soft); font-size: 0.82rem; font-weight: 600; }\n        .horiz-slider-wrap {\n            display: flex;\n            align-items: center;\n            gap: 10px;\n        }\n        .hs-btn {\n            width: 44px; height: 44px;\n            flex-shrink: 0;\n            font-size: 1.6rem;\n        }\n        .hs-range::-webkit-slider-runnable-track {\n            height: 10px; border-radius: 5px;\n            background: linear-gradient(to right,\n                #0f6b7a var(--hs-fill, 50%),\n                #d4dadd var(--hs-fill, 50%));\n        }\n        .hs-range::-webkit-slider-thumb {\n            -webkit-appearance: none;\n            width: 28px; height: 28px;\n            margin-top: -9px;\n            border-radius: 50%;\n            background: #0f6b7a;\n            border: 3px solid #fff;\n            box-shadow: 0 1px 5px rgba(0,0,0,0.4);\n        }\n        .hs-range::-moz-range-track { height: 10px; border-radius: 5px; background: #d4dadd; }\n        .hs-range::-moz-range-progress { height: 10px; border-radius: 5px; background: #0f6b7a; }\n        .hs-range::-moz-range-thumb {\n            width: 28px; height: 28px; border-radius: 50%;\n            background: #0f6b7a; border: 3px solid #fff;\n        }\n\n        /* ---- Toggles iOS — état lisible par position + couleur AA ---- */\n        .sweep-header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            margin-bottom: 4px;\n        }\n        .toggle-ios {\n            -webkit-appearance: none;\n            appearance: none;\n            width: 56px; height: 32px;\n            background: #43707f;\n            border-radius: 16px;\n            position: relative;\n            outline: none;\n            cursor: pointer;\n            transition: background 0.25s;\n            flex-shrink: 0;\n            border: 1px solid rgba(0,0,0,0.25);\n        }\n        .toggle-ios:checked { background: var(--go); }\n        .toggle-ios::after {\n            content: '';\n            position: absolute;\n            top: 2px; left: 2px;\n            width: 26px; height: 26px;\n            background: white;\n            border-radius: 50%;\n            transition: transform 0.25s;\n            box-shadow: 0 1px 3px rgba(0,0,0,0.4);\n        }\n        .toggle-ios:checked::after { transform: translateX(24px); }\n\n        .sweep-label {\n            text-align: center;\n            font-family: ui-monospace, \"SF Mono\", Menlo, monospace;\n            font-size: 0.95rem;\n            font-weight: 600;\n            margin: 12px 0 4px;\n        }\n        .dual-slider-wrap {\n            position: relative;\n            height: 48px;\n            background: var(--surface);\n            border-radius: 24px;\n            margin: 10px 0;\n            touch-action: none;\n            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);\n        }\n        .ds-track {\n            position: absolute;\n            top: 21px; left: 12px; right: 12px;\n            height: 6px; background: #cfd6d9; border-radius: 3px;\n        }\n        .ds-fill {\n            position: absolute;\n            top: 21px; height: 6px;\n            background: #245fa6; cursor: grab; border-radius: 3px;\n        }\n        .ds-handle {\n            position: absolute;\n            top: 9px;\n            width: 30px; height: 30px;\n            background: #fff;\n            border: 3px solid #245fa6;\n            border-radius: 50%;\n            transform: translateX(-50%);\n            cursor: ew-resize;\n            box-shadow: 0 2px 6px rgba(0,0,0,0.35);\n            z-index: 2;\n        }\n        .sweep-controls {\n            display: flex;\n            justify-content: space-between;\n            gap: 12px;\n            margin-top: 14px;\n        }\n        .sweep-toggle-label {\n            display: flex;\n            align-items: center;\n            gap: 10px;\n            font-size: 0.95rem;\n            font-weight: 600;\n            min-height: 44px;\n        }\n\n        /* ---- Presets ---- */\n        .preset-row {\n            display: flex;\n            gap: 8px;\n            flex-wrap: wrap;\n            margin-bottom: 8px;\n        }\n        .preset-btn {\n            min-height: 44px;\n            padding: 8px 16px;\n            background: rgba(255,255,255,0.12);\n            border: 1.5px solid rgba(255,255,255,0.45);  /* contour visible 1.4.11 */\n            border-radius: 12px;\n            color: #fff;\n            font-size: 0.95rem;\n            font-weight: 600;\n            cursor: pointer;\n            user-select: none;\n            display: inline-flex;\n            align-items: center;\n            gap: 8px;\n        }\n        .preset-btn:active { background: rgba(255,255,255,0.28); }\n        .preset-del {\n            opacity: 0.85; font-size: 0.85em;\n            padding: 4px;\n        }\n        .preset-save-row {\n            display: flex;\n            gap: 10px;\n            margin-top: 10px;\n        }\n        .preset-name-input {\n            flex-grow: 1;\n            min-height: 44px;\n            padding: 8px 14px;\n            border-radius: 12px;\n            border: 1.5px solid rgba(255,255,255,0.5);\n            background: rgba(255,255,255,0.95);\n            color: var(--ink);\n            font-size: 16px;            /* ≥16px : évite le zoom auto iOS */\n            outline: none;\n        }\n        .preset-name-input::placeholder { color: #67757c; }\n        .btn-save-preset {\n            min-height: 44px;\n            padding: 8px 18px;\n            background: var(--go);\n            border: 1.5px solid #0d7a3e;\n            border-radius: 12px;\n            color: #fff;\n            font-size: 0.95rem;\n            font-weight: 700;\n            cursor: pointer;\n            white-space: nowrap;\n            display: inline-flex;\n            align-items: center;\n            gap: 6px;\n        }\n        .btn-save-preset:active { filter: brightness(0.92); }\n\n        /* ---- Sélecteur de sortie ---- */\n        .device-section label.field-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }\n        select {\n            width: 100%;\n            min-height: 44px;\n            padding: 8px 12px;\n            border-radius: 12px;\n            border: 1.5px solid rgba(255,255,255,0.5);\n            font-size: 16px;\n            background: rgba(255,255,255,0.95);\n            color: var(--ink);\n        }\n        .ios-msg { margin-top: 8px; font-size: 0.9rem; color: var(--on-brand); display: none; }\n\n        /* ---- Barre de transport fixe ---- */\n        .transport {\n            position: fixed;\n            bottom: 0; left: 0; right: 0;\n            z-index: 30;\n            display: flex;\n            gap: 10px;\n            padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);\n            padding-left: max(16px, env(safe-area-inset-left));\n            padding-right: max(16px, env(safe-area-inset-right));\n            background: var(--brand-deep);\n            border-top: 1px solid var(--line);\n            box-shadow: 0 -6px 20px rgba(0,0,0,0.35);\n        }\n        @media (min-width: 520px) {\n            .transport { left: 50%; transform: translateX(-50%); width: 520px; }\n        }\n        .btn-main {\n            flex: 1;\n            min-height: 60px;\n            border-radius: 14px;\n            font-size: 1.2rem;\n            font-weight: 700;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            gap: 10px;\n            cursor: pointer;\n            user-select: none;\n            touch-action: none;\n            -webkit-tap-highlight-color: transparent;\n            border: 2px solid transparent;\n        }\n        .btn-play {\n            background: var(--go);\n            color: #fff;\n            border-color: #0c8a48;\n        }\n        .btn-play.active {\n            background: var(--stop);\n            border-color: #a82a23;\n        }\n        .btn-hold {\n            background: rgba(255,255,255,0.14);\n            color: #fff;\n            border-color: rgba(255,255,255,0.5);\n        }\n        .btn-hold.active {\n            background: var(--hold);\n            border-color: #8c6708;\n            color: #fff;\n        }\n        .btn-main .icon { font-size: 1.1rem; }\n\n        /* ---- Focus visible (2.4.7 / 2.4.13) ---- */\n        button:focus-visible,\n        input:focus-visible,\n        select:focus-visible,\n        .ds-handle:focus-visible,\n        .preset-name-input:focus-visible {\n            outline: 3px solid var(--focus);\n            outline-offset: 2px;\n        }\n        .knob-slider:focus-visible,\n        .hs-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 6px; }\n\n        @media (prefers-reduced-motion: reduce) {\n            * { transition: none !important; }\n        }\n    <\u002Fstyle>\n<\u002Fhead>\n\n<body>\n<div class=\"app\">\n    <header class=\"app-header\">\n        <h1>Wave Generator<\u002Fh1>\n        <div class=\"header-vu\" aria-hidden=\"true\">\n            <span style=\"height:8px\"><\u002Fspan>\n            <span style=\"height:16px\"><\u002Fspan>\n            <span style=\"height:11px\"><\u002Fspan>\n            <span style=\"height:20px\"><\u002Fspan>\n            <span style=\"height:6px\"><\u002Fspan>\n        <\u002Fdiv>\n    <\u002Fheader>\n\n    <main class=\"scroller\">\n        <div class=\"vis-container\" aria-hidden=\"true\">\n            <canvas class=\"scope-canvas\" id=\"scopeCanvas\"><\u002Fcanvas>\n            <canvas class=\"vu-canvas\" id=\"vuCanvas\"><\u002Fcanvas>\n        <\u002Fdiv>\n\n        <section class=\"card\" aria-label=\"Réglages principaux\">\n            <div class=\"sliders-grid\" id=\"knobsGrid\"><\u002Fdiv>\n        <\u002Fsection>\n\n        <section class=\"panel\">\n            <div class=\"sweep-header\">\n                <span class=\"section-title\" style=\"margin:0\">⟷ Freq Sweep<\u002Fspan>\n                <input type=\"checkbox\" class=\"toggle-ios\" id=\"sweepToggle\" aria-label=\"Activer le balayage de fréquence\">\n            <\u002Fdiv>\n            <div id=\"sweepBody\">\n                <div class=\"sweep-label\" id=\"sweepLabel\">50 Hz — 1200 Hz<\u002Fdiv>\n                <div class=\"dual-slider-wrap\" id=\"sweepSlider\">\n                    <div class=\"ds-track\"><\u002Fdiv>\n                    <div class=\"ds-fill\" id=\"sweepFill\"><\u002Fdiv>\n                    <div class=\"ds-handle\" id=\"sweepH1\" tabindex=\"0\" role=\"slider\" aria-label=\"Fréquence basse du balayage\"><\u002Fdiv>\n                    <div class=\"ds-handle\" id=\"sweepH2\" tabindex=\"0\" role=\"slider\" aria-label=\"Fréquence haute du balayage\"><\u002Fdiv>\n                <\u002Fdiv>\n                <div class=\"sweep-controls\">\n                    <label class=\"sweep-toggle-label\">\n                        <input type=\"checkbox\" class=\"toggle-ios\" id=\"invertToggle\" aria-label=\"Inverser le balayage\">\n                        <span>⇄ Inverser<\u002Fspan>\n                    <\u002Flabel>\n                    <label class=\"sweep-toggle-label\">\n                        <input type=\"checkbox\" class=\"toggle-ios\" id=\"doubleToggle\" aria-label=\"Doubler le balayage\">\n                        <span>⋀ Double<\u002Fspan>\n                    <\u002Flabel>\n                <\u002Fdiv>\n            <\u002Fdiv>\n        <\u002Fsection>\n\n        <section class=\"card\" aria-label=\"Réglages stéréo et détune\">\n            <div id=\"slidersWrap\"><\u002Fdiv>\n        <\u002Fsection>\n\n        <section class=\"panel\">\n            <div class=\"section-title\">🎛 Préréglages<\u002Fdiv>\n            <div class=\"preset-row\" id=\"builtinPresets\"><\u002Fdiv>\n            <div class=\"preset-row\" id=\"userPresets\"><\u002Fdiv>\n            <div class=\"preset-save-row\">\n                <input type=\"text\" class=\"preset-name-input\" id=\"presetNameInput\" placeholder=\"Nom du préréglage…\" aria-label=\"Nom du préréglage\">\n                <button type=\"button\" class=\"btn-save-preset\" id=\"btnSavePreset\">💾 Sauver<\u002Fbutton>\n            <\u002Fdiv>\n        <\u002Fsection>\n\n        <section class=\"panel device-section\" id=\"deviceSection\">\n            <label class=\"field-label\" for=\"deviceSelect\">Sortie audio<\u002Flabel>\n            <select id=\"deviceSelect\">\n                <option value=\"\">Sélection par défaut<\u002Foption>\n            <\u002Fselect>\n        <\u002Fsection>\n        <p class=\"ios-msg\" id=\"iosDeviceMsg\">Le son est dirigé vers le périphérique iOS par défaut.<\u002Fp>\n    <\u002Fmain>\n<\u002Fdiv>\n\n<nav class=\"transport\" aria-label=\"Lecture\">\n    <button type=\"button\" class=\"btn-main btn-play\" id=\"btnPlay\" aria-pressed=\"false\">\n        <span class=\"icon\" aria-hidden=\"true\">▶<\u002Fspan><span>Play<\u002Fspan>\n    <\u002Fbutton>\n    <button type=\"button\" class=\"btn-main btn-hold\" id=\"btnHold\" aria-pressed=\"false\">\n        <span class=\"icon\" aria-hidden=\"true\">⏸<\u002Fspan><span>Hold<\u002Fspan>\n    <\u002Fbutton>\n<\u002Fnav>\n\n<script>\n// ============================================================\n//  Wave Generator — moteur audio + UI\n//  Logique audio inchangée. UI rendue avec de vrais <button>\n//  accessibles (libellés ARIA, focus clavier).\n// ============================================================\n\n// --- MATH UTILS ---\nfunction warpPhase(t, r) {\n    const r2 = r*r, r3 = r2*r;\n    if (t < r) {\n        const a1 = (2*r - 1) / r3;\n        const b1 = -3*(2*r - 1) / (2*r2);\n        return ((a1*t + b1)*t + 1)*t;\n    } else {\n        const u = (t - r) / (1 - r);\n        return (((1 - 2*r)*u + (6*r - 3)/2)*u + (1 - r))*u + 0.5;\n    }\n}\n\nfunction subOctaveHMax(fMain) {\n    const cutoff = 200;\n    const Sm = 1 / (1 + (fMain/cutoff)**2);\n    const Ss = 1 / (1 + ((fMain/2)/cutoff)**2);\n    const r = Sm / Ss;\n    return r / (1 + r);\n}\n\n// --- STATE ---\nconst STORAGE_KEY = 'stimgen_v10_wave_generator';\nconst USER_PRESETS_KEY = 'stimgen_v10_user_presets';\n\nconst defaultState = {\n    freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,\n    sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,\n    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0\n};\n\nlet state = Object.assign({}, defaultState);\n\nfunction loadState() {\n    try {\n        const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');\n        Object.assign(state, s);\n    } catch(e) {}\n    state.sweepLo = Math.max(50, Math.min(1190, state.sweepLo || 500));\n    state.sweepHi = Math.max(state.sweepLo + 10, Math.min(1200, state.sweepHi || 900));\n    Object.keys(defaultState).forEach(k => {\n        if (state[k] === undefined) state[k] = defaultState[k];\n    });\n}\n\nfunction saveState() {\n    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));\n}\n\nconst BUILTIN_PRESETS = [\n    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false } },\n    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false } },\n    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false } },\n    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false } },\n    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400 } },\n];\n\nfunction loadUserPresets() {\n    try { return JSON.parse(localStorage.getItem(USER_PRESETS_KEY) || '[]'); } catch(e) { return []; }\n}\nfunction saveUserPresets(list) { localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(list)); }\n\nfunction applyPreset(ps) {\n    Object.assign(state, ps);\n    state.sweepLo = Math.max(50, Math.min(1190, state.sweepLo || 500));\n    state.sweepHi = Math.max(state.sweepLo + 10, Math.min(1200, state.sweepHi || 900));\n    Object.keys(defaultState).forEach(k => { if (state[k] === undefined) state[k] = defaultState[k]; });\n    saveState();\n    syncAllUI();\n    if (audioInit) { updateModBuffer(); updateAudioParams(); }\n}\n\n// --- AUDIO ---\nlet ctx = null, audioInit = false;\nlet merger, masterG, analyserL, analyserR, analyserDetune;\nlet carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;\nlet balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;\nlet modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;\n\nfunction initAudio() {\n    if (audioInit) return;\n    ctx = new (window.AudioContext || window.webkitAudioContext)();\n\n    merger = ctx.createChannelMerger(2);\n    masterG = ctx.createGain(); masterG.gain.value = 0;\n    merger.connect(masterG); masterG.connect(ctx.destination);\n\n    const monL = ctx.createGain(), monR = ctx.createGain();\n    masterG.connect(monL); masterG.connect(monR);\n\n    analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; monL.connect(analyserL);\n    analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; monR.connect(analyserR);\n    analyserDetune = ctx.createAnalyser(); analyserDetune.fftSize = 2048;\n\n    carrierOsc = ctx.createOscillator(); carrierMix1 = ctx.createGain();\n    carrierOsc.connect(carrierMix1);\n\n    carrierOscDetune = ctx.createOscillator(); carrierMix2 = ctx.createGain();\n    carrierOscDetune.connect(carrierMix2);\n\n    carrierOscH2 = ctx.createOscillator(); harmonicGain = ctx.createGain();\n    carrierOscH2.connect(harmonicGain);\n\n    const mainSum = ctx.createGain();\n    carrierMix1.connect(mainSum); carrierMix2.connect(mainSum); harmonicGain.connect(mainSum);\n\n    amGainL = ctx.createGain(); amGainR = ctx.createGain();\n    balL = ctx.createGain(); balR = ctx.createGain();\n    mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);\n    mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);\n\n    delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);\n    depthGainL = ctx.createGain(); depthGainR = ctx.createGain();\n    delayModL.connect(depthGainL); delayModR.connect(depthGainR);\n    depthGainL.connect(amGainL.gain); depthGainR.connect(amGainR.gain);\n\n    amGainDetune = ctx.createGain(); amGainDetune.gain.value = 0;\n    carrierMix2.connect(amGainDetune); amGainDetune.connect(analyserDetune);\n    depthGainL.connect(amGainDetune.gain);\n\n    sweepShaper = ctx.createWaveShaper();\n    sweepLFOGain = ctx.createGain();\n    subSweepGain = ctx.createGain(); subSweepGain.gain.value = 0.5;\n    sweepShaper.connect(sweepLFOGain);\n    sweepLFOGain.connect(carrierOsc.frequency);\n    sweepLFOGain.connect(carrierOscDetune.frequency);\n    sweepLFOGain.connect(subSweepGain); subSweepGain.connect(carrierOscH2.frequency);\n\n    detuneConstant = ctx.createConstantSource();\n    detuneConstant.connect(carrierOscDetune.frequency);\n\n    carrierOsc.start(); carrierOscDetune.start(); carrierOscH2.start(); detuneConstant.start();\n\n    updateModBuffer();\n    updateAudioParams();\n    audioInit = true;\n}\n\nlet currentPhaseIntegrator = 0;\nfunction updateModBuffer() {\n    if (!ctx) return;\n    const size = ctx.sampleRate;\n    const buf = ctx.createBuffer(1, size, ctx.sampleRate);\n    const data = buf.getChannelData(0);\n    const ratio = state.ratio / 100;\n    for (let i = 0; i < size; i++) data[i] = Math.sin(2 * Math.PI * warpPhase(i/size, ratio));\n\n    const newOsc = ctx.createBufferSource();\n    newOsc.buffer = buf; newOsc.loop = true;\n    newOsc.playbackRate.value = state.hold ? 0 : state.rythm;\n    newOsc.connect(sweepShaper); newOsc.connect(delayModL); newOsc.connect(delayModR);\n\n    const now = ctx.currentTime;\n    newOsc.start(now, (currentPhaseIntegrator % 1.0) * buf.duration);\n    if (modOsc) { modOsc.stop(now); try { modOsc.disconnect(); } catch(e) {} }\n    modOsc = newOsc;\n}\n\nfunction updateAudioParams() {\n    if (!ctx) return;\n    const now = ctx.currentTime;\n\n    masterG.gain.setTargetAtTime(state.playing ? state.volume / 100 : 0, now, 0.05);\n    if (modOsc) modOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.rythm, now, 0.05);\n\n    const cf = state.sweepActive ? (state.sweepLo + state.sweepHi)/2 : state.freq;\n    carrierOsc.frequency.setTargetAtTime(cf, now, 0.05);\n    carrierOscH2.frequency.setTargetAtTime(cf/2, now, 0.05);\n    carrierOscDetune.frequency.setTargetAtTime(cf, now, 0.05);\n    detuneConstant.offset.setTargetAtTime(state.detuneOffset, now, 0.05);\n\n    const hRaw = state.subOctave / 100;\n    const h = cf < 100 ? 0 : hRaw * subOctaveHMax(cf);\n    const d = state.detuneDepth / 100;\n    carrierMix1.gain.setTargetAtTime((1-h)*(1-d/2), now, 0.05);\n    carrierMix2.gain.setTargetAtTime((1-h)*(d/2), now, 0.05);\n    harmonicGain.gain.setTargetAtTime(h, now, 0.05);\n\n    const depth = state.depth / 100;\n    const amBase = 1.0 - depth/2;\n    amGainL.gain.setTargetAtTime(amBase, now, 0.05);\n    amGainR.gain.setTargetAtTime(amBase, now, 0.05);\n    amGainDetune.gain.setTargetAtTime(amBase, now, 0.05);\n    depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);\n    depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);\n\n    balL.gain.setTargetAtTime(state.balance > 0 ? 1 - state.balance/100 : 1, now, 0.05);\n    balR.gain.setTargetAtTime(state.balance < 0 ? 1 + state.balance/100 : 1, now, 0.05);\n\n    let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;\n    delaySecs = Math.min(delaySecs, 5.0);\n    delayModL.delayTime.setTargetAtTime(state.phase < 0 ? delaySecs : 0, now, 0.05);\n    delayModR.delayTime.setTargetAtTime(state.phase > 0 ? delaySecs : 0, now, 0.05);\n\n    let sr = state.sweepActive ? (state.sweepHi - state.sweepLo)/2 : 0;\n    if (state.invertSweep) sr = -sr;\n    sweepLFOGain.gain.setTargetAtTime(sr, now, 0.05);\n\n    if (state.doubleSweep && state.sweepActive) {\n        const c = new Float32Array(2048);\n        for (let i = 0; i < 2048; i++) c[i] = 2 * Math.abs((i/2047)*2 - 1) - 1;\n        sweepShaper.curve = c;\n    } else {\n        const c = new Float32Array([-1, 1]);\n        sweepShaper.curve = c;\n    }\n}\n\n// --- KNOBS (grid sliders) ---\nconst knobsDef = [\n    { id:'freq',     label:'Fréquence', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },\n    { id:'volume',   label:'Volume',    min:0,   max:100,  step:1,    color:'#9c5e16', fmt: v => v+' %' },\n    { id:'rythm',    label:'Rythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },\n    { id:'depth',    label:'Depth',     min:0,   max:100,  step:1,    color:'#1f7a4d', fmt: v => v+' %' },\n    { id:'emphasis', label:'Emphasis',  min:0,   max:100,  step:1,    color:'#6d3f80', fmt: v => v+' %', disabled:true },\n    { id:'ratio',    label:'Ratio',     min:20,  max:80,   step:1,    color:'#a04335', fmt: v => v+'/'+(100-v) }\n];\nconst knobRefs = {};\n\nfunction holdRepeat(el, fn) {\n    let timer = null;\n    const go = (e) => { e.preventDefault(); fn(); timer = setTimeout(function tick(){ fn(); timer = setTimeout(tick, 80); }, 400); };\n    const stop = () => { clearTimeout(timer); timer = null; };\n    el.addEventListener('mousedown', go);\n    el.addEventListener('touchstart', go, { passive: false });\n    window.addEventListener('mouseup', stop);\n    window.addEventListener('touchend', stop);\n    // Accessibilité clavier : Entrée / Espace déclenchent un pas\n    el.addEventListener('keydown', (e) => {\n        if (e.key === 'Enter' || e.key === ' ' || e.code === 'Space') { e.preventDefault(); fn(); }\n    });\n}\n\nfunction renderKnobs() {\n    const grid = document.getElementById('knobsGrid');\n    grid.innerHTML = '';\n    knobsDef.forEach(k => {\n        const wrap = document.createElement('div');\n        wrap.className = 'slider-wrap' + (k.disabled ? ' disabled-slider' : '');\n        wrap.id = 'wrap_' + k.id;\n\n        const hdr = document.createElement('div');\n        hdr.className = 'slider-header';\n\n        const lbl = document.createElement('label');\n        lbl.className = 'slider-label';\n        lbl.textContent = k.label;\n        lbl.setAttribute('for', 'knob_' + k.id);\n\n        const valEl = document.createElement('span');\n        valEl.className = 'slider-val';\n        valEl.id = 'val_' + k.id;\n\n        hdr.appendChild(lbl); hdr.appendChild(valEl);\n\n        const input = document.createElement('input');\n        input.type = 'range';\n        input.className = 'knob-slider';\n        input.id = 'knob_' + k.id;\n        input.min = k.min; input.max = k.max; input.step = k.step;\n        input.setAttribute('aria-label', k.label);\n        if (k.disabled) input.disabled = true;\n        const cur = (state[k.id] !== undefined) ? state[k.id] : k.min;\n        input.value = cur;\n        input.style.setProperty('--thumb-color', k.color);\n\n        const setTrack = (v) => {\n            const pct = Math.max(0, Math.min(100, ((v - k.min) / (k.max - k.min)) * 100));\n            input.style.setProperty('--fill-pct', pct + '%');\n        };\n        setTrack(cur);\n        valEl.textContent = k.fmt(cur);\n\n        input.addEventListener('input', () => {\n            if (k.id === 'freq' && state.sweepActive) return;\n            const v = Math.round(parseFloat(input.value) / k.step) * k.step;\n            state[k.id] = v;\n            setTrack(v); valEl.textContent = k.fmt(v);\n            if (k.id === 'ratio') updateModBuffer();\n            if (audioInit) updateAudioParams();\n            saveState(); updateHSDisplays();\n        });\n\n        const btnRow = document.createElement('div');\n        btnRow.className = 'knob-btn-row';\n        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'knob-btn'; btnM.textContent = '−';\n        btnM.setAttribute('aria-label', 'Diminuer ' + k.label);\n        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'knob-btn'; btnP.textContent = '+';\n        btnP.setAttribute('aria-label', 'Augmenter ' + k.label);\n        if (k.disabled) { btnM.disabled = true; btnP.disabled = true; }\n\n        const updateKnob = (nv) => {\n            if (k.id === 'freq' && state.sweepActive) return;\n            nv = Math.round(Math.max(k.min, Math.min(k.max, nv)) / k.step) * k.step;\n            state[k.id] = nv;\n            input.value = nv;\n            setTrack(nv); valEl.textContent = k.fmt(nv);\n            if (k.id === 'ratio') updateModBuffer();\n            if (audioInit) updateAudioParams();\n            saveState(); updateHSDisplays();\n        };\n        holdRepeat(btnM, () => updateKnob(state[k.id] - k.step));\n        holdRepeat(btnP, () => updateKnob(state[k.id] + k.step));\n\n        btnRow.appendChild(btnM); btnRow.appendChild(btnP);\n        wrap.appendChild(hdr); wrap.appendChild(input); wrap.appendChild(btnRow);\n        grid.appendChild(wrap);\n        knobRefs[k.id] = { input, valEl, def: k, setTrack };\n    });\n}\n\nfunction syncKnob(id, overrideVal) {\n    const r = knobRefs[id];\n    if (!r) return;\n    const v = overrideVal !== undefined ? overrideVal : state[id];\n    r.valEl.textContent = r.def.fmt(v);\n    r.input.value = v;\n    r.setTrack(v);\n}\n\n// --- HORIZONTAL SLIDERS ---\nconst hsDef = [\n    { id:'balance',      label:'Balance',            min:-100, max:100,  step:1   },\n    { id:'phase',        label:'Déphasage L/R',      min:-45,  max:45,   step:1   },\n    { id:'detuneOffset', label:'Détune Offset',      min:-2.5, max:2.5,  step:0.1 },\n    { id:'detuneDepth',  label:'Profondeur Détune',  min:0,    max:100,  step:1   },\n    { id:'subOctave',    label:'Sous-octave (Bass)', min:0,    max:100,  step:1   }\n];\nconst hsRefs = {};\n\nfunction fmtHS(id, v) {\n    v = +v;\n    if (id === 'balance')      return v === 0 ? 'Centre' : (v < 0 ? `◀ L ${-v}` : `R ${v} ▶`);\n    if (id === 'phase')        return v === 0 ? 'Synchro' : (v > 0 ? `L mène ${v}°` : `R mène ${-v}°`);\n    if (id === 'detuneOffset') return v === 0 ? 'Synchro' : `${v>0?'+':''}${v.toFixed(1)} Hz`;\n    if (id === 'detuneDepth')  return v + ' %';\n    if (id === 'subOctave') {\n        const cf = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;\n        return cf < 100 ? '(muet)' : `${v} % (${(cf/2).toFixed(0)} Hz)`;\n    }\n    return v;\n}\n\nfunction renderSliders() {\n    const wrap = document.getElementById('slidersWrap');\n    wrap.innerHTML = '';\n    hsDef.forEach(s => {\n        const row = document.createElement('div');\n        row.className = 'hs-row';\n\n        const lblRow = document.createElement('div');\n        lblRow.className = 'hs-label-row';\n        const lbl = document.createElement('label'); lbl.textContent = s.label; lbl.setAttribute('for', 'hs_' + s.id);\n        const valEl = document.createElement('span'); valEl.className = 'hs-val'; valEl.id = 'hsval_' + s.id;\n        lblRow.appendChild(lbl); lblRow.appendChild(valEl);\n\n        const cw = document.createElement('div'); cw.className = 'horiz-slider-wrap';\n        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'hs-btn'; btnM.textContent = '−';\n        btnM.setAttribute('aria-label', 'Diminuer ' + s.label);\n        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'hs-btn'; btnP.textContent = '+';\n        btnP.setAttribute('aria-label', 'Augmenter ' + s.label);\n        const range = document.createElement('input'); range.type = 'range';\n        range.className = 'hs-range';\n        range.id = 'hs_' + s.id;\n        range.setAttribute('aria-label', s.label);\n        range.min = s.min; range.max = s.max; range.step = s.step;\n        const cur = (state[s.id] !== undefined) ? state[s.id] : 0;\n        range.value = cur;\n        valEl.textContent = fmtHS(s.id, cur);\n\n        const setHSTrack = (v) => {\n            const pct = Math.max(0, Math.min(100, ((v - s.min) / (s.max - s.min)) * 100));\n            range.style.setProperty('--hs-fill', pct + '%');\n        };\n        setHSTrack(cur);\n\n        cw.appendChild(btnM); cw.appendChild(range); cw.appendChild(btnP);\n        row.appendChild(lblRow); row.appendChild(cw);\n        wrap.appendChild(row);\n\n        const update = (nv) => {\n            nv = Math.round(Math.max(s.min, Math.min(s.max, nv)) / s.step) * s.step;\n            state[s.id] = nv;\n            range.value = nv;\n            valEl.textContent = fmtHS(s.id, nv);\n            setHSTrack(nv);\n            if (audioInit) updateAudioParams();\n            saveState();\n        };\n        range.addEventListener('input', e => update(parseFloat(e.target.value)));\n        holdRepeat(btnM, () => update(state[s.id] - s.step));\n        holdRepeat(btnP, () => update(state[s.id] + s.step));\n\n        hsRefs[s.id] = { range, valEl };\n    });\n}\n\nfunction updateHSDisplays() {\n    hsDef.forEach(s => {\n        const el = document.getElementById('hsval_' + s.id);\n        if (el) el.textContent = fmtHS(s.id, state[s.id]);\n    });\n}\n\nfunction syncAllUI() {\n    renderKnobs();\n    renderSliders();\n    updateSweepUI();\n    document.getElementById('invertToggle').checked = !!state.invertSweep;\n    document.getElementById('doubleToggle').checked = !!state.doubleSweep;\n}\n\n// --- SWEEP ---\nlet sWrap, sFill, sH1, sH2, sBody;\n\nfunction updateSweepUI() {\n    const minF = 50, maxF = 1200;\n    const w = sWrap.offsetWidth - 24;\n    const p1 = (state.sweepLo - minF) / (maxF - minF);\n    const p2 = (state.sweepHi - minF) / (maxF - minF);\n    sH1.style.left = `calc(12px + ${p1*w}px)`;\n    sH2.style.left = `calc(12px + ${p2*w}px)`;\n    sFill.style.left = `calc(12px + ${p1*w}px)`;\n    sFill.style.width = `${(p2-p1)*w}px`;\n    document.getElementById('sweepLabel').textContent = `${state.sweepLo} Hz — ${state.sweepHi} Hz`;\n    sBody.style.opacity = state.sweepActive ? '1' : '0.5';\n    sBody.style.pointerEvents = state.sweepActive ? 'auto' : 'none';\n    document.getElementById('sweepToggle').checked = state.sweepActive;\n    const fw = document.getElementById('wrap_freq');\n    if (fw) {\n        fw.classList.toggle('knob-sweep-active', state.sweepActive);\n        if (!state.sweepActive) syncKnob('freq');\n    }\n}\n\nfunction bindSweep() {\n    let drag = null, sx, sLo, sHi;\n    const onStart = (type, e) => {\n        drag = type; sx = e.touches ? e.touches[0].clientX : e.clientX;\n        sLo = state.sweepLo; sHi = state.sweepHi;\n        e.preventDefault();\n    };\n    const onMove = (e) => {\n        if (!drag) return;\n        const x = e.touches ? e.touches[0].clientX : e.clientX;\n        const w = sWrap.offsetWidth - 24;\n        const df = Math.round(((x - sx) / w) * 1150 / 10) * 10;\n        if (drag === 'h1')   state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, sLo+df));\n        else if (drag === 'h2') state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, sHi+df));\n        else if (drag === 'fill') {\n            const span = sHi - sLo;\n            let lo = sLo+df, hi = sHi+df;\n            if (lo < 50) { lo=50; hi=lo+span; }\n            if (hi > 1200) { hi=1200; lo=hi-span; }\n            state.sweepLo=lo; state.sweepHi=hi;\n        }\n        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays();\n    };\n    const onEnd = () => { if (drag) { drag=null; saveState(); } };\n\n    ['mousedown','touchstart'].forEach(ev => {\n        const opts = ev === 'touchstart' ? {passive:false} : {};\n        sH1.addEventListener(ev, e => onStart('h1',e), opts);\n        sH2.addEventListener(ev, e => onStart('h2',e), opts);\n        sFill.addEventListener(ev, e => onStart('fill',e), opts);\n    });\n    window.addEventListener('mousemove', onMove, {passive:false});\n    window.addEventListener('touchmove', onMove, {passive:false});\n    window.addEventListener('mouseup', onEnd);\n    window.addEventListener('touchend', onEnd);\n\n    // Accessibilité clavier des poignées de sweep\n    const kbHandle = (which) => (e) => {\n        const stepKeys = { ArrowLeft:-10, ArrowDown:-10, ArrowRight:10, ArrowUp:10 };\n        if (!(e.key in stepKeys)) return;\n        e.preventDefault();\n        const d = stepKeys[e.key];\n        if (which === 'h1') state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, state.sweepLo + d));\n        else state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, state.sweepHi + d));\n        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();\n    };\n    sH1.addEventListener('keydown', kbHandle('h1'));\n    sH2.addEventListener('keydown', kbHandle('h2'));\n\n    document.getElementById('sweepToggle').addEventListener('change', e => {\n        state.sweepActive = e.target.checked;\n        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();\n    });\n    document.getElementById('invertToggle').addEventListener('change', e => {\n        state.invertSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();\n    });\n    document.getElementById('doubleToggle').addEventListener('change', e => {\n        state.doubleSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();\n    });\n}\n\n// --- PRESETS ---\nfunction renderPresets() {\n    const bi = document.getElementById('builtinPresets');\n    bi.innerHTML = '';\n    BUILTIN_PRESETS.forEach(p => {\n        const b = document.createElement('button'); b.type = 'button'; b.className = 'preset-btn'; b.textContent = p.name;\n        b.addEventListener('click', () => applyPreset(p.state));\n        bi.appendChild(b);\n    });\n    renderUserPresets();\n}\n\nfunction renderUserPresets() {\n    const row = document.getElementById('userPresets');\n    row.innerHTML = '';\n    loadUserPresets().forEach((p, i) => {\n        const b = document.createElement('button'); b.type = 'button'; b.className = 'preset-btn preset-user';\n        b.appendChild(document.createTextNode(p.name + ' '));\n        const x = document.createElement('span');\n        x.className = 'preset-del';\n        x.textContent = '✕';\n        x.dataset.idx = i;\n        x.setAttribute('role', 'button');\n        x.setAttribute('aria-label', 'Supprimer le préréglage ' + p.name);\n        b.appendChild(x);\n        b.addEventListener('click', e => {\n            if (e.target.dataset.idx !== undefined) {\n                const list = loadUserPresets(); list.splice(+e.target.dataset.idx, 1);\n                saveUserPresets(list); renderUserPresets();\n            } else { applyPreset(p.state); }\n        });\n        row.appendChild(b);\n    });\n}\n\n// --- VISUALIZERS ---\nlet scopeCanvas, vuCanvas, sCtx, vCtx;\nconst bufL = new Float32Array(2048), bufR = new Float32Array(2048), bufD = new Float32Array(2048);\nlet dpr = 1;\n\nfunction initCanvas() {\n    dpr = window.devicePixelRatio || 1;\n    const w1 = scopeCanvas.offsetWidth || 280;\n    const w2 = vuCanvas.offsetWidth || 30;\n    const hh = scopeCanvas.offsetHeight || 96;\n    scopeCanvas.width = w1 * dpr; scopeCanvas.height = hh * dpr;\n    vuCanvas.width = w2 * dpr;   vuCanvas.height = hh * dpr;\n    sCtx.setTransform(1,0,0,1,0,0); vCtx.setTransform(1,0,0,1,0,0);\n    sCtx.scale(dpr, dpr); vCtx.scale(dpr, dpr);\n}\n\nfunction drawScope() {\n    const w = scopeCanvas.offsetWidth || 280, h = scopeCanvas.offsetHeight || 96;\n    sCtx.fillStyle = '#0a151a';\n    sCtx.fillRect(0, 0, w, h);\n    sCtx.strokeStyle = 'rgba(255,255,255,0.08)';\n    sCtx.lineWidth = 1;\n    sCtx.beginPath();\n    for (let x = 0; x < w; x += 28) { sCtx.moveTo(x,0); sCtx.lineTo(x,h); }\n    for (let y = 0; y < h; y += 28) { sCtx.moveTo(0,y); sCtx.lineTo(w,y); }\n    sCtx.stroke();\n\n    if (!ctx || !state.playing) return;\n    analyserL.getFloatTimeDomainData(bufL);\n    analyserR.getFloatTimeDomainData(bufR);\n\n    const trace = (buf, color, lw) => {\n        sCtx.beginPath(); sCtx.strokeStyle = color; sCtx.lineWidth = lw;\n        for (let i = 0; i < buf.length; i += 4) {\n            const x = (i/buf.length)*w, y = (0.5 - buf[i]*0.5)*h;\n            i === 0 ? sCtx.moveTo(x,y) : sCtx.lineTo(x,y);\n        }\n        sCtx.stroke();\n    };\n\n    if (state.detuneDepth > 0) {\n        analyserDetune.getFloatTimeDomainData(bufD);\n        const cf2 = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;\n        const h2 = cf2 < 100 ? 0 : (state.subOctave/100) * subOctaveHMax(cf2);\n        const sc = (1-h2)*(state.detuneDepth/100/2)*(state.volume/100);\n        for (let i = 0; i < bufD.length; i++) bufD[i] *= sc;\n        trace(bufD, 'rgba(240,150,60,0.8)', 1.5);\n    }\n    trace(bufL, '#3b86d6', 2.5);\n    trace(bufR, '#ff5c69', 2.5);\n\n    let pkL = 0, pkR = 0;\n    for (let i = 0; i < bufL.length; i++) {\n        if (Math.abs(bufL[i]) > pkL) pkL = Math.abs(bufL[i]);\n        if (Math.abs(bufR[i]) > pkR) pkR = Math.abs(bufR[i]);\n    }\n    const vw = vuCanvas.offsetWidth || 30;\n    vCtx.clearRect(0,0,vw,h);\n    vCtx.fillStyle = '#3b86d6'; vCtx.fillRect(2, h-pkL*h, vw/2-3, pkL*h);\n    vCtx.fillStyle = '#ff5c69'; vCtx.fillRect(vw/2+1, h-pkR*h, vw/2-3, pkR*h);\n}\n\nlet lastTime = performance.now();\nfunction animate() {\n    const now = performance.now();\n    const dt = (now - lastTime) / 1000;\n    lastTime = now;\n\n    if (state.playing && !state.hold) {\n        currentPhaseIntegrator = (currentPhaseIntegrator + dt * state.rythm) % 1.0;\n    }\n\n    if (state.sweepActive && state.playing && !state.hold) {\n        let lfo = Math.sin(2*Math.PI*warpPhase(currentPhaseIntegrator, state.ratio/100));\n        if (state.doubleSweep) lfo = 2*Math.abs(lfo)-1;\n        if (state.invertSweep) lfo = -lfo;\n        const instFreq = (state.sweepLo+state.sweepHi)/2 + (state.sweepHi-state.sweepLo)/2*lfo;\n        const r = knobRefs['freq'];\n        if (r) r.valEl.textContent = r.def.fmt(Math.round(instFreq));\n    }\n\n    drawScope();\n    requestAnimationFrame(animate);\n}\n\n// --- PLAY / HOLD ---\nfunction togglePlay() {\n    state.playing = !state.playing;\n    const btn = document.getElementById('btnPlay');\n    if (state.playing) {\n        btn.classList.add('active');\n        btn.setAttribute('aria-pressed', 'true');\n        btn.innerHTML = '<span class=\"icon\" aria-hidden=\"true\">■<\u002Fspan><span>Stop<\u002Fspan>';\n    } else {\n        btn.classList.remove('active');\n        btn.setAttribute('aria-pressed', 'false');\n        btn.innerHTML = '<span class=\"icon\" aria-hidden=\"true\">▶<\u002Fspan><span>Play<\u002Fspan>';\n    }\n    if (audioInit) updateAudioParams();\n}\n\n// --- DEVICE SELECTOR ---\nfunction setupDevices() {\n    const sel = document.getElementById('deviceSelect');\n    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||\n                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);\n    if (isIOS) {\n        const ds = document.getElementById('deviceSection');\n        if (ds) ds.style.display = 'none';\n        document.getElementById('iosDeviceMsg').style.display = 'block';\n    } else {\n        navigator.mediaDevices && navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {\n            navigator.mediaDevices.enumerateDevices().then(devices => {\n                devices.filter(d => d.kind === 'audiooutput').forEach((d, i) => {\n                    const o = document.createElement('option');\n                    o.value = d.deviceId; o.text = d.label || `Speaker ${i+1}`;\n                    sel.appendChild(o);\n                });\n            });\n        }).catch(() => {});\n        sel.addEventListener('change', e => {\n            if (ctx && typeof ctx.setSinkId === 'function') ctx.setSinkId(e.target.value).catch(console.error);\n        });\n    }\n}\n\n// --- BOOT ---\nwindow.addEventListener('load', () => {\n    sWrap = document.getElementById('sweepSlider');\n    sFill = document.getElementById('sweepFill');\n    sH1   = document.getElementById('sweepH1');\n    sH2   = document.getElementById('sweepH2');\n    sBody = document.getElementById('sweepBody');\n    scopeCanvas = document.getElementById('scopeCanvas');\n    vuCanvas    = document.getElementById('vuCanvas');\n    sCtx = scopeCanvas.getContext('2d');\n    vCtx = vuCanvas.getContext('2d');\n\n    loadState();\n    renderKnobs();\n    renderSliders();\n    bindSweep();\n    renderPresets();\n\n    document.getElementById('btnPlay').addEventListener('click', () => {\n        if (!audioInit) initAudio();\n        if (ctx.state === 'suspended') ctx.resume().then(togglePlay);\n        else togglePlay();\n    });\n    document.getElementById('btnHold').addEventListener('click', () => {\n        state.hold = !state.hold;\n        const hb = document.getElementById('btnHold');\n        hb.classList.toggle('active', state.hold);\n        hb.setAttribute('aria-pressed', state.hold ? 'true' : 'false');\n        if (audioInit) updateAudioParams();\n    });\n    document.addEventListener('keydown', e => {\n        if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;\n        if (e.code === 'Space' && (e.target === document.body)) { e.preventDefault(); document.getElementById('btnPlay').click(); }\n        else if (e.key === 'h' || e.key === 'H') document.getElementById('btnHold').click();\n    });\n\n    document.getElementById('btnSavePreset').addEventListener('click', () => {\n        const name = document.getElementById('presetNameInput').value.trim();\n        if (!name) return;\n        const list = loadUserPresets();\n        const ps = Object.assign({}, state);\n        list.push({ name, state: ps });\n        saveUserPresets(list);\n        document.getElementById('presetNameInput').value = '';\n        renderUserPresets();\n    });\n\n    document.getElementById('invertToggle').checked = !!state.invertSweep;\n    document.getElementById('doubleToggle').checked = !!state.doubleSweep;\n    setupDevices();\n\n    function waitForLayout(attempts) {\n        initCanvas();\n        updateSweepUI();\n        if (sWrap.offsetWidth < 10 && attempts > 0) {\n            setTimeout(() => waitForLayout(attempts - 1), 50);\n        }\n    }\n    requestAnimationFrame(() => waitForLayout(10));\n    requestAnimationFrame(animate);\n    window.addEventListener('resize', () => { initCanvas(); updateSweepUI(); });\n});\n\n<\u002Fscript>\n\n\n<\u002Fbody><\u002Fhtml>"
-  </script>
-</body>
-</html>
+</body></html>
