@@ -602,11 +602,6 @@
             </div>
         </section>
 
-        <section class="card acc collapsed" data-acc="detune" aria-label="Réglages stéréo et détune">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎚 Stéréo &amp; Détune</div>
-            <div id="slidersWrap" class="acc-body"></div>
-        </section>
-
         <section class="card acc collapsed" id="autoPanPanel" data-acc="pan">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> 🔄 Auto-Pan / Orbit</span>
@@ -738,7 +733,7 @@ const USER_PRESETS_KEY = 'stimgen_v10_user_presets';
 
 const defaultState = {
     waveform: 'sine',
-    freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,
+    freq: 700, volume: 60, rythm: 0.5, depth: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
     balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0,
     panActive: false, panRate: 0.3, panDepth: 70, panRatio: 50,
@@ -760,6 +755,9 @@ function loadState() {
     if (!['free','half','x1','x2'].includes(state.panSync)) state.panSync = 'free';
     state.panPhase = Math.max(0, Math.min(360, state.panPhase || 0));
     state.panLinkRatio = !!state.panLinkRatio;
+    // Branche "lite" : détune, sous-octave et déphasage retirés → forcés neutres
+    // (au cas où un ancien état stocké les aurait activés).
+    state.phase = 0; state.detuneOffset = 0; state.detuneDepth = 0; state.subOctave = 0;
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -770,12 +768,12 @@ function saveState() {
 }
 
 const BUILTIN_PRESETS = [
-    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
-    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.6,  depth:60, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50, panSync:'x1', panPhase:90, panLinkRatio:false } },
+    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
+    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.6,  depth:60, ratio:50, balance:0, sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50, panSync:'x1', panPhase:90, panLinkRatio:false } },
 ];
 
 function loadUserPresets() {
@@ -1052,7 +1050,7 @@ const knobsDef = [
     { id:'volume',   label:'Volume',    min:0,   max:100,  step:1,    color:'#9c5e16', fmt: v => v+' %' },
     { id:'rythm',    label:'Rythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
     { id:'depth',    label:'Depth',     min:0,   max:100,  step:1,    color:'#1f7a4d', fmt: v => v+' %' },
-    { id:'emphasis', label:'Emphasis',  min:0,   max:100,  step:1,    color:'#6d3f80', fmt: v => v+' %', disabled:true },
+    { id:'balance',  label:'Balance',   min:-100, max:100, step:1,    color:'#245fa6', fmt: v => { v=+v; return v===0 ? 'Centre' : (v<0 ? `◀ L ${-v}` : `R ${v} ▶`); } },
     { id:'ratio',    label:'Ratio',     min:20,  max:80,   step:1,    color:'#a04335', fmt: v => v+'/'+(100-v) }
 ];
 const knobRefs = {};
@@ -1159,13 +1157,9 @@ function syncKnob(id, overrideVal) {
 }
 
 // --- HORIZONTAL SLIDERS ---
-const hsDef = [
-    { id:'balance',      label:'Balance',            min:-100, max:100,  step:1   },
-    { id:'phase',        label:'Déphasage L/R',      min:-45,  max:45,   step:1   },
-    { id:'detuneOffset', label:'Détune Offset',      min:-2.5, max:2.5,  step:0.1 },
-    { id:'detuneDepth',  label:'Profondeur Détune',  min:0,    max:100,  step:1   },
-    { id:'subOctave',    label:'Sous-octave (Bass)', min:0,    max:100,  step:1   }
-];
+// Branche "lite" : section Stéréo & Détune retirée. Balance est passée dans
+// la carte principale (knobsDef). Plus aucun slider horizontal.
+const hsDef = [];
 const hsRefs = {};
 
 function fmtHS(id, v) {
@@ -1183,6 +1177,7 @@ function fmtHS(id, v) {
 
 function renderSliders() {
     const wrap = document.getElementById('slidersWrap');
+    if (!wrap) return;
     wrap.innerHTML = '';
     hsDef.forEach(s => {
         const row = document.createElement('div');
