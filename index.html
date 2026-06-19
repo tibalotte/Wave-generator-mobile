@@ -55,27 +55,16 @@
             z-index: 20;
             background: var(--brand-deep);
             border-bottom: 1px solid var(--line);
-            padding: calc(env(safe-area-inset-top) + 12px) 18px 12px;
+            padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            flex-direction: column;
+            gap: 8px;
         }
         .app-header h1 {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
             letter-spacing: 0.02em;
             margin: 0;
-        }
-        .header-vu {
-            display: flex;
-            gap: 4px;
-            align-items: flex-end;
-            height: 22px;
-        }
-        .header-vu span {
-            width: 4px; border-radius: 2px;
-            background: rgba(255,255,255,0.35);
         }
 
         /* ---- Zone scrollable ---- */
@@ -88,12 +77,12 @@
             padding-right: max(16px, env(safe-area-inset-right));
         }
 
-        /* ---- Visualiseur ---- */
+        /* ---- Visualiseur (dans le bandeau collant) ---- */
         .vis-container {
             display: flex;
             gap: 8px;
-            height: 96px;
-            margin-bottom: 16px;
+            height: 84px;
+            margin: 0;
         }
         .scope-canvas {
             flex-grow: 1;
@@ -302,12 +291,10 @@
             background: #0f6b7a; border: 3px solid #fff;
         }
 
-        /* ---- Auto-Pan : libellés/valeurs clairs sur le panneau foncé ---- */
-        #autoPanPanel .hs-label-row { color: #fff; }
-        #autoPanPanel .hs-val { color: rgba(255,255,255,0.88); }
+        /* ---- Auto-Pan : lignes désactivées ---- */
         #autoPanPanel .hs-row.row-disabled { opacity: 0.4; pointer-events: none; }
 
-        /* ---- Contrôle segmenté (sync du pan) ---- */
+        /* ---- Contrôle segmenté (sync du pan) — thème carte claire ---- */
         .seg-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -317,25 +304,25 @@
         .seg-btn {
             min-height: 42px;
             border-radius: 10px;
-            border: 1.5px solid rgba(255,255,255,0.45);
-            background: rgba(255,255,255,0.12);
-            color: #fff;
+            border: 1.5px solid #5d717a;
+            background: #e8eef0;
+            color: #12343d;
             font-size: 0.92rem;
             font-weight: 700;
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            transition: background 0.15s, border-color 0.15s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
         }
-        .seg-btn[aria-pressed="true"] { background: var(--go); border-color: #0d7a3e; }
-        .seg-btn:active { filter: brightness(0.92); }
+        .seg-btn[aria-pressed="true"] { background: var(--go); border-color: #0d7a3e; color: #fff; }
+        .seg-btn:active { filter: brightness(0.95); }
         .pan-link-label {
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 0.92rem;
             font-weight: 600;
-            color: #fff;
+            color: var(--ink);
             min-height: 44px;
             margin-top: 4px;
         }
@@ -383,7 +370,7 @@
         .dual-slider-wrap {
             position: relative;
             height: 48px;
-            background: var(--surface);
+            background: #e8eef0;
             border-radius: 24px;
             margin: 10px 0;
             touch-action: none;
@@ -436,10 +423,10 @@
         .preset-btn {
             min-height: 44px;
             padding: 8px 16px;
-            background: rgba(255,255,255,0.12);
-            border: 1.5px solid rgba(255,255,255,0.45);  /* contour visible 1.4.11 */
+            background: #e8eef0;
+            border: 1.5px solid #5d717a;  /* contour visible 1.4.11 */
             border-radius: 12px;
-            color: #fff;
+            color: #12343d;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
@@ -448,7 +435,7 @@
             align-items: center;
             gap: 8px;
         }
-        .preset-btn:active { background: rgba(255,255,255,0.28); }
+        .preset-btn:active { background: #c3d0d4; }
         .preset-del {
             opacity: 0.85; font-size: 0.85em;
             padding: 4px;
@@ -577,27 +564,19 @@
 <div class="app">
     <header class="app-header">
         <h1>Wave Generator</h1>
-        <div class="header-vu" aria-hidden="true">
-            <span style="height:8px"></span>
-            <span style="height:16px"></span>
-            <span style="height:11px"></span>
-            <span style="height:20px"></span>
-            <span style="height:6px"></span>
-        </div>
-    </header>
-
-    <main class="scroller">
         <div class="vis-container" aria-hidden="true">
             <canvas class="scope-canvas" id="scopeCanvas"></canvas>
             <canvas class="vu-canvas" id="vuCanvas"></canvas>
         </div>
+    </header>
 
+    <main class="scroller">
         <section class="card" aria-label="Réglages principaux">
             <div class="wave-select" id="waveSelect" role="group" aria-label="Forme d'onde"></div>
             <div class="sliders-grid" id="knobsGrid"></div>
         </section>
 
-        <section class="panel acc collapsed" data-acc="sweep">
+        <section class="card acc collapsed" data-acc="sweep">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> ⟷ Freq Sweep</span>
                 <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Activer le balayage de fréquence">
@@ -628,13 +607,13 @@
             <div id="slidersWrap" class="acc-body"></div>
         </section>
 
-        <section class="panel acc collapsed" id="autoPanPanel" data-acc="pan">
+        <section class="card acc collapsed" id="autoPanPanel" data-acc="pan">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> 🔄 Auto-Pan / Orbit</span>
                 <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
             </div>
             <div id="panBody" class="acc-body">
-                <div class="hs-label-row" style="color:#fff"><label>Sync rythme</label></div>
+                <div class="hs-label-row"><label>Sync rythme</label></div>
                 <div class="seg-row" id="panSyncSeg" role="group" aria-label="Synchronisation du pan sur le rythme">
                     <button type="button" class="seg-btn" data-sync="free" aria-label="Pan libre">Libre</button>
                     <button type="button" class="seg-btn" data-sync="half" aria-label="Pan synchronisé demi-vitesse">÷2</button>
@@ -692,7 +671,7 @@
             </div>
         </section>
 
-        <section class="panel acc collapsed" data-acc="presets">
+        <section class="card acc collapsed" data-acc="presets">
             <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Préréglages</div>
             <div class="acc-body">
                 <div class="preset-row" id="builtinPresets"></div>
