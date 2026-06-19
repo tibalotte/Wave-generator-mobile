@@ -136,6 +136,14 @@
             margin-bottom: 12px;
         }
 
+        /* ---- Accordéon (replier les sections) ---- */
+        .acc-toggle { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .acc-chevron { display: inline-block; transition: transform 0.2s; font-size: 0.8em; opacity: 0.85; }
+        .acc:not(.collapsed) .acc-chevron { transform: rotate(90deg); }
+        .acc.collapsed .acc-body { display: none; }
+        .acc.collapsed .section-title.acc-toggle,
+        .acc.collapsed .sweep-header.acc-toggle { margin-bottom: 0; }
+
         /* ---- Sélecteur de forme d'onde ---- */
         .wave-select {
             display: grid;
@@ -589,12 +597,12 @@
             <div class="sliders-grid" id="knobsGrid"></div>
         </section>
 
-        <section class="panel">
-            <div class="sweep-header">
-                <span class="section-title" style="margin:0">⟷ Freq Sweep</span>
+        <section class="panel acc collapsed" data-acc="sweep">
+            <div class="sweep-header acc-toggle">
+                <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> ⟷ Freq Sweep</span>
                 <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Activer le balayage de fréquence">
             </div>
-            <div id="sweepBody">
+            <div id="sweepBody" class="acc-body">
                 <div class="sweep-label" id="sweepLabel">50 Hz — 1200 Hz</div>
                 <div class="dual-slider-wrap" id="sweepSlider">
                     <div class="ds-track"></div>
@@ -615,16 +623,17 @@
             </div>
         </section>
 
-        <section class="card" aria-label="Réglages stéréo et détune">
-            <div id="slidersWrap"></div>
+        <section class="card acc collapsed" data-acc="detune" aria-label="Réglages stéréo et détune">
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎚 Stéréo &amp; Détune</div>
+            <div id="slidersWrap" class="acc-body"></div>
         </section>
 
-        <section class="panel" id="autoPanPanel">
-            <div class="sweep-header">
-                <span class="section-title" style="margin:0">🔄 Auto-Pan / Orbit</span>
+        <section class="panel acc collapsed" id="autoPanPanel" data-acc="pan">
+            <div class="sweep-header acc-toggle">
+                <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> 🔄 Auto-Pan / Orbit</span>
                 <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
             </div>
-            <div id="panBody">
+            <div id="panBody" class="acc-body">
                 <div class="hs-label-row" style="color:#fff"><label>Sync rythme</label></div>
                 <div class="seg-row" id="panSyncSeg" role="group" aria-label="Synchronisation du pan sur le rythme">
                     <button type="button" class="seg-btn" data-sync="free" aria-label="Pan libre">Libre</button>
@@ -683,21 +692,25 @@
             </div>
         </section>
 
-        <section class="panel">
-            <div class="section-title">🎛 Préréglages</div>
-            <div class="preset-row" id="builtinPresets"></div>
-            <div class="preset-row" id="userPresets"></div>
-            <div class="preset-save-row">
-                <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Nom du préréglage…" aria-label="Nom du préréglage">
-                <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Sauver</button>
+        <section class="panel acc collapsed" data-acc="presets">
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Préréglages</div>
+            <div class="acc-body">
+                <div class="preset-row" id="builtinPresets"></div>
+                <div class="preset-row" id="userPresets"></div>
+                <div class="preset-save-row">
+                    <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Nom du préréglage…" aria-label="Nom du préréglage">
+                    <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Sauver</button>
+                </div>
             </div>
         </section>
 
-        <section class="panel device-section" id="deviceSection">
-            <label class="field-label" for="deviceSelect">Sortie audio</label>
-            <select id="deviceSelect">
-                <option value="">Sélection par défaut</option>
-            </select>
+        <section class="panel device-section acc collapsed" id="deviceSection" data-acc="device">
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🔊 Sortie audio</div>
+            <div class="acc-body">
+                <select id="deviceSelect" style="margin-top:4px">
+                    <option value="">Sélection par défaut</option>
+                </select>
+            </div>
         </section>
         <p class="ios-msg" id="iosDeviceMsg">Le son est dirigé vers le périphérique iOS par défaut.</p>
     </main>
@@ -1601,6 +1614,38 @@ function setupDevices() {
     }
 }
 
+// --- ACCORDÉON ---
+const ACC_KEY = 'stimgen_v10_accordion';
+function loadAccState() { try { return JSON.parse(localStorage.getItem(ACC_KEY) || '{}'); } catch(e) { return {}; } }
+function saveAccState(s) { localStorage.setItem(ACC_KEY, JSON.stringify(s)); }
+
+function initAccordion() {
+    const stored = loadAccState();
+    document.querySelectorAll('[data-acc]').forEach(sec => {
+        const id = sec.dataset.acc;
+        if (id in stored) sec.classList.toggle('collapsed', !!stored[id]);  // sinon : valeur du HTML
+        const head = sec.querySelector('.acc-toggle');
+        if (!head) return;
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-expanded', String(!sec.classList.contains('collapsed')));
+        const fromControl = (t) => t.closest('input, label, select, button, .toggle-ios');
+        const toggle = () => {
+            const collapsed = !sec.classList.contains('collapsed');
+            sec.classList.toggle('collapsed', collapsed);
+            head.setAttribute('aria-expanded', String(!collapsed));
+            const s = loadAccState(); s[id] = collapsed; saveAccState(s);
+            // Le balayage positionne ses poignées d'après la largeur du conteneur,
+            // nulle tant que la section est repliée : on recalcule à l'ouverture.
+            if (!collapsed && id === 'sweep' && typeof updateSweepUI === 'function') updateSweepUI();
+        };
+        head.addEventListener('click', e => { if (!fromControl(e.target)) toggle(); });
+        head.addEventListener('keydown', e => {
+            if ((e.key === 'Enter' || e.key === ' ') && !fromControl(e.target)) { e.preventDefault(); toggle(); }
+        });
+    });
+}
+
 // --- BOOT ---
 window.addEventListener('load', () => {
     sWrap = document.getElementById('sweepSlider');
@@ -1653,6 +1698,7 @@ window.addEventListener('load', () => {
     document.getElementById('invertToggle').checked = !!state.invertSweep;
     document.getElementById('doubleToggle').checked = !!state.doubleSweep;
     setupDevices();
+    initAccordion();
 
     function waitForLayout(attempts) {
         initCanvas();
