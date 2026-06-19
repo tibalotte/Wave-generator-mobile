@@ -719,14 +719,6 @@ function warpPhase(t, r) {
     }
 }
 
-function subOctaveHMax(fMain) {
-    const cutoff = 200;
-    const Sm = 1 / (1 + (fMain/cutoff)**2);
-    const Ss = 1 / (1 + ((fMain/2)/cutoff)**2);
-    const r = Sm / Ss;
-    return r / (1 + r);
-}
-
 // --- STATE ---
 const STORAGE_KEY = 'stimgen_v10_wave_generator';
 const USER_PRESETS_KEY = 'stimgen_v10_user_presets';
@@ -735,7 +727,7 @@ const defaultState = {
     waveform: 'sine',
     freq: 700, volume: 60, rythm: 0.5, depth: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
-    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0,
+    balance: 0,
     panActive: false, panRate: 0.3, panDepth: 70, panRatio: 50,
     panSync: 'free', panPhase: 0, panLinkRatio: false
 };
@@ -755,9 +747,6 @@ function loadState() {
     if (!['free','half','x1','x2'].includes(state.panSync)) state.panSync = 'free';
     state.panPhase = Math.max(0, Math.min(360, state.panPhase || 0));
     state.panLinkRatio = !!state.panLinkRatio;
-    // Branche "lite" : détune, sous-octave et déphasage retirés → forcés neutres
-    // (au cas où un ancien état stocké les aurait activés).
-    state.phase = 0; state.detuneOffset = 0; state.detuneDepth = 0; state.subOctave = 0;
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -793,10 +782,10 @@ function applyPreset(ps) {
 
 // --- AUDIO ---
 let ctx = null, audioInit = false;
-let merger, masterG, analyserL, analyserR, analyserDetune;
-let carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;
-let balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;
-let modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;
+let merger, masterG, analyserL, analyserR;
+let carrierOsc;
+let balL, balR, amGainL, amGainR, depthGainL, depthGainR;
+let modOsc, sweepShaper, sweepLFOGain;
 let panOsc, panShaperL, panShaperR;
 
 function initAudio() {
@@ -815,24 +804,13 @@ function initAudio() {
 
     analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; scopeSplit.connect(analyserL, 0);
     analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; scopeSplit.connect(analyserR, 1);
-    analyserDetune = ctx.createAnalyser(); analyserDetune.fftSize = 2048;
 
-    carrierOsc = ctx.createOscillator(); carrierMix1 = ctx.createGain();
-    carrierOsc.connect(carrierMix1);
-
-    carrierOscDetune = ctx.createOscillator(); carrierMix2 = ctx.createGain();
-    carrierOscDetune.connect(carrierMix2);
-
-    carrierOscH2 = ctx.createOscillator(); harmonicGain = ctx.createGain();
-    carrierOscH2.connect(harmonicGain);
-
-    const mainSum = ctx.createGain();
-    carrierMix1.connect(mainSum); carrierMix2.connect(mainSum); harmonicGain.connect(mainSum);
+    carrierOsc = ctx.createOscillator();
 
     amGainL = ctx.createGain(); amGainR = ctx.createGain();
     balL = ctx.createGain(); balR = ctx.createGain();
-    mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
-    mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
+    carrierOsc.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
+    carrierOsc.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
 
     // Auto-pan : la Balance fixe la position centrale du panoramique et le
     // LFO (buffer warpPhase) fait osciller cette position autour du centre.
@@ -845,27 +823,17 @@ function initAudio() {
     panShaperR = ctx.createWaveShaper(); panShaperR.curve = panCurve('R', state.balance/100, 0);
     panShaperL.connect(balL.gain); panShaperR.connect(balR.gain);
 
-    delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);
+    // Modulation d'amplitude (Depth) : le LFO rythmique pilote amGainL/R.gain.
     depthGainL = ctx.createGain(); depthGainR = ctx.createGain();
-    delayModL.connect(depthGainL); delayModR.connect(depthGainR);
     depthGainL.connect(amGainL.gain); depthGainR.connect(amGainR.gain);
 
-    amGainDetune = ctx.createGain(); amGainDetune.gain.value = 0;
-    carrierMix2.connect(amGainDetune); amGainDetune.connect(analyserDetune);
-    depthGainL.connect(amGainDetune.gain);
-
+    // Balayage de fréquence : le LFO rythmique module la fréquence porteuse.
     sweepShaper = ctx.createWaveShaper();
     sweepLFOGain = ctx.createGain();
-    subSweepGain = ctx.createGain(); subSweepGain.gain.value = 0.5;
     sweepShaper.connect(sweepLFOGain);
     sweepLFOGain.connect(carrierOsc.frequency);
-    sweepLFOGain.connect(carrierOscDetune.frequency);
-    sweepLFOGain.connect(subSweepGain); subSweepGain.connect(carrierOscH2.frequency);
 
-    detuneConstant = ctx.createConstantSource();
-    detuneConstant.connect(carrierOscDetune.frequency);
-
-    carrierOsc.start(); carrierOscDetune.start(); carrierOscH2.start(); detuneConstant.start();
+    carrierOsc.start();
 
     updateModBuffer();
     updatePanBuffer();
@@ -888,7 +856,7 @@ function updateModBuffer() {
     const newOsc = ctx.createBufferSource();
     newOsc.buffer = buf; newOsc.loop = true;
     newOsc.playbackRate.value = state.hold ? 0 : state.rythm;
-    newOsc.connect(sweepShaper); newOsc.connect(delayModL); newOsc.connect(delayModR);
+    newOsc.connect(sweepShaper); newOsc.connect(depthGainL); newOsc.connect(depthGainR);
 
     const now = ctx.currentTime;
     newOsc.start(now, (currentPhaseIntegrator % 1.0) * buf.duration);
@@ -952,29 +920,16 @@ function updateAudioParams() {
     masterG.gain.setTargetAtTime(state.playing ? state.volume / 100 : 0, now, 0.05);
     if (modOsc) modOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.rythm, now, 0.05);
 
-    // Forme d'onde appliquée à la porteuse principale + détune.
-    // La sous-octave (carrierOscH2) reste sinus pour des basses propres.
     const wf = state.waveform || 'sine';
-    if (carrierOsc.type !== wf) { carrierOsc.type = wf; carrierOscDetune.type = wf; }
+    if (carrierOsc.type !== wf) carrierOsc.type = wf;
 
     const cf = state.sweepActive ? (state.sweepLo + state.sweepHi)/2 : state.freq;
     carrierOsc.frequency.setTargetAtTime(cf, now, 0.05);
-    carrierOscH2.frequency.setTargetAtTime(cf/2, now, 0.05);
-    carrierOscDetune.frequency.setTargetAtTime(cf, now, 0.05);
-    detuneConstant.offset.setTargetAtTime(state.detuneOffset, now, 0.05);
-
-    const hRaw = state.subOctave / 100;
-    const h = cf < 100 ? 0 : hRaw * subOctaveHMax(cf);
-    const d = state.detuneDepth / 100;
-    carrierMix1.gain.setTargetAtTime((1-h)*(1-d/2), now, 0.05);
-    carrierMix2.gain.setTargetAtTime((1-h)*(d/2), now, 0.05);
-    harmonicGain.gain.setTargetAtTime(h, now, 0.05);
 
     const depth = state.depth / 100;
     const amBase = 1.0 - depth/2;
     amGainL.gain.setTargetAtTime(amBase, now, 0.05);
     amGainR.gain.setTargetAtTime(amBase, now, 0.05);
-    amGainDetune.gain.setTargetAtTime(amBase, now, 0.05);
     depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);
     depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);
 
@@ -989,11 +944,6 @@ function updateAudioParams() {
     const panMult = PAN_MULTS[state.panSync];
     const panRate = panMult !== null ? state.rythm * panMult : state.panRate;
     if (panOsc) panOsc.playbackRate.setTargetAtTime(state.hold ? 0 : panRate, now, 0.05);
-
-    let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;
-    delaySecs = Math.min(delaySecs, 5.0);
-    delayModL.delayTime.setTargetAtTime(state.phase < 0 ? delaySecs : 0, now, 0.05);
-    delayModR.delayTime.setTargetAtTime(state.phase > 0 ? delaySecs : 0, now, 0.05);
 
     let sr = state.sweepActive ? (state.sweepHi - state.sweepLo)/2 : 0;
     if (state.invertSweep) sr = -sr;
@@ -1116,7 +1066,7 @@ function renderKnobs() {
             setTrack(v); valEl.textContent = k.fmt(v);
             if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
-            saveState(); updateHSDisplays();
+            saveState();
         });
 
         const btnRow = document.createElement('div');
@@ -1135,7 +1085,7 @@ function renderKnobs() {
             setTrack(nv); valEl.textContent = k.fmt(nv);
             if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
-            saveState(); updateHSDisplays();
+            saveState();
         };
         holdRepeat(btnM, () => updateKnob(state[k.id] - k.step));
         holdRepeat(btnP, () => updateKnob(state[k.id] + k.step));
@@ -1156,91 +1106,9 @@ function syncKnob(id, overrideVal) {
     r.setTrack(v);
 }
 
-// --- HORIZONTAL SLIDERS ---
-// Branche "lite" : section Stéréo & Détune retirée. Balance est passée dans
-// la carte principale (knobsDef). Plus aucun slider horizontal.
-const hsDef = [];
-const hsRefs = {};
-
-function fmtHS(id, v) {
-    v = +v;
-    if (id === 'balance')      return v === 0 ? 'Centre' : (v < 0 ? `◀ L ${-v}` : `R ${v} ▶`);
-    if (id === 'phase')        return v === 0 ? 'Synchro' : (v > 0 ? `L mène ${v}°` : `R mène ${-v}°`);
-    if (id === 'detuneOffset') return v === 0 ? 'Synchro' : `${v>0?'+':''}${v.toFixed(1)} Hz`;
-    if (id === 'detuneDepth')  return v + ' %';
-    if (id === 'subOctave') {
-        const cf = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
-        return cf < 100 ? '(muet)' : `${v} % (${(cf/2).toFixed(0)} Hz)`;
-    }
-    return v;
-}
-
-function renderSliders() {
-    const wrap = document.getElementById('slidersWrap');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    hsDef.forEach(s => {
-        const row = document.createElement('div');
-        row.className = 'hs-row';
-
-        const lblRow = document.createElement('div');
-        lblRow.className = 'hs-label-row';
-        const lbl = document.createElement('label'); lbl.textContent = s.label; lbl.setAttribute('for', 'hs_' + s.id);
-        const valEl = document.createElement('span'); valEl.className = 'hs-val'; valEl.id = 'hsval_' + s.id;
-        lblRow.appendChild(lbl); lblRow.appendChild(valEl);
-
-        const cw = document.createElement('div'); cw.className = 'horiz-slider-wrap';
-        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'hs-btn'; btnM.textContent = '−';
-        btnM.setAttribute('aria-label', 'Diminuer ' + s.label);
-        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'hs-btn'; btnP.textContent = '+';
-        btnP.setAttribute('aria-label', 'Augmenter ' + s.label);
-        const range = document.createElement('input'); range.type = 'range';
-        range.className = 'hs-range';
-        range.id = 'hs_' + s.id;
-        range.setAttribute('aria-label', s.label);
-        range.min = s.min; range.max = s.max; range.step = s.step;
-        const cur = (state[s.id] !== undefined) ? state[s.id] : 0;
-        range.value = cur;
-        valEl.textContent = fmtHS(s.id, cur);
-
-        const setHSTrack = (v) => {
-            const pct = Math.max(0, Math.min(100, ((v - s.min) / (s.max - s.min)) * 100));
-            range.style.setProperty('--hs-fill', pct + '%');
-        };
-        setHSTrack(cur);
-
-        cw.appendChild(btnM); cw.appendChild(range); cw.appendChild(btnP);
-        row.appendChild(lblRow); row.appendChild(cw);
-        wrap.appendChild(row);
-
-        const update = (nv) => {
-            nv = Math.round(Math.max(s.min, Math.min(s.max, nv)) / s.step) * s.step;
-            state[s.id] = nv;
-            range.value = nv;
-            valEl.textContent = fmtHS(s.id, nv);
-            setHSTrack(nv);
-            if (audioInit) updateAudioParams();
-            saveState();
-        };
-        range.addEventListener('input', e => update(parseFloat(e.target.value)));
-        holdRepeat(btnM, () => update(state[s.id] - s.step));
-        holdRepeat(btnP, () => update(state[s.id] + s.step));
-
-        hsRefs[s.id] = { range, valEl };
-    });
-}
-
-function updateHSDisplays() {
-    hsDef.forEach(s => {
-        const el = document.getElementById('hsval_' + s.id);
-        if (el) el.textContent = fmtHS(s.id, state[s.id]);
-    });
-}
-
 function syncAllUI() {
     renderWaveSelect();
     renderKnobs();
-    renderSliders();
     updateSweepUI();
     updatePanUI();
     document.getElementById('invertToggle').checked = !!state.invertSweep;
@@ -1291,7 +1159,7 @@ function bindSweep() {
             if (hi > 1200) { hi=1200; lo=hi-span; }
             state.sweepLo=lo; state.sweepHi=hi;
         }
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays();
+        updateSweepUI(); if (audioInit) updateAudioParams();
     };
     const onEnd = () => { if (drag) { drag=null; saveState(); } };
 
@@ -1314,14 +1182,14 @@ function bindSweep() {
         const d = stepKeys[e.key];
         if (which === 'h1') state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, state.sweepLo + d));
         else state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, state.sweepHi + d));
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+        updateSweepUI(); if (audioInit) updateAudioParams(); saveState();
     };
     sH1.addEventListener('keydown', kbHandle('h1'));
     sH2.addEventListener('keydown', kbHandle('h2'));
 
     document.getElementById('sweepToggle').addEventListener('change', e => {
         state.sweepActive = e.target.checked;
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+        updateSweepUI(); if (audioInit) updateAudioParams(); saveState();
     });
     document.getElementById('invertToggle').addEventListener('change', e => {
         state.invertSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();
@@ -1477,7 +1345,7 @@ function renderUserPresets() {
 
 // --- VISUALIZERS ---
 let scopeCanvas, vuCanvas, sCtx, vCtx;
-const bufL = new Float32Array(2048), bufR = new Float32Array(2048), bufD = new Float32Array(2048);
+const bufL = new Float32Array(2048), bufR = new Float32Array(2048);
 let dpr = 1;
 
 function initCanvas() {
@@ -1515,14 +1383,6 @@ function drawScope() {
         sCtx.stroke();
     };
 
-    if (state.detuneDepth > 0) {
-        analyserDetune.getFloatTimeDomainData(bufD);
-        const cf2 = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
-        const h2 = cf2 < 100 ? 0 : (state.subOctave/100) * subOctaveHMax(cf2);
-        const sc = (1-h2)*(state.detuneDepth/100/2)*(state.volume/100);
-        for (let i = 0; i < bufD.length; i++) bufD[i] *= sc;
-        trace(bufD, 'rgba(240,150,60,0.8)', 1.5);
-    }
     trace(bufL, '#3b86d6', 2.5);
     trace(bufR, '#ff5c69', 2.5);
 
@@ -1654,7 +1514,6 @@ window.addEventListener('load', () => {
     loadState();
     renderWaveSelect();
     renderKnobs();
-    renderSliders();
     bindSweep();
     bindAutoPan();
     renderPresets();
