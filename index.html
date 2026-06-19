@@ -741,11 +741,14 @@ function initAudio() {
     masterG = ctx.createGain(); masterG.gain.value = 0;
     merger.connect(masterG); masterG.connect(ctx.destination);
 
-    const monL = ctx.createGain(), monR = ctx.createGain();
-    masterG.connect(monL); masterG.connect(monR);
+    // Métrage L/R réel : on sépare les deux canaux post-master avec un
+    // ChannelSplitter, au lieu d'analyser le mixage mono. Balance, déphasage
+    // et auto-pan deviennent ainsi distinctement visibles à l'oscilloscope.
+    const scopeSplit = ctx.createChannelSplitter(2);
+    masterG.connect(scopeSplit);
 
-    analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; monL.connect(analyserL);
-    analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; monR.connect(analyserR);
+    analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; scopeSplit.connect(analyserL, 0);
+    analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; scopeSplit.connect(analyserR, 1);
     analyserDetune = ctx.createAnalyser(); analyserDetune.fftSize = 2048;
 
     carrierOsc = ctx.createOscillator(); carrierMix1 = ctx.createGain();
