@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0e3a48">
@@ -571,7 +571,7 @@
 <body>
 <div class="app">
     <header class="app-header">
-        <h1>Wave Generator <span class="app-version">v1.0</span></h1>
+        <h1>Wave Generator <span class="app-version">v1.1</span></h1>
         <div class="vis-container" aria-hidden="true">
             <canvas class="scope-canvas" id="scopeCanvas"></canvas>
             <canvas class="vu-canvas" id="vuCanvas"></canvas>
@@ -579,17 +579,17 @@
     </header>
 
     <main class="scroller">
-        <section class="card" aria-label="Réglages principaux">
-            <div class="wave-select" id="waveSelect" role="group" aria-label="Forme d'onde"></div>
+        <section class="card" aria-label="Main settings">
+            <div class="wave-select" id="waveSelect" role="group" aria-label="Waveform"></div>
             <div class="hs-row" id="dutyRow" style="display:none; margin-bottom:18px">
                 <div class="hs-label-row">
-                    <label for="dutyRange">Largeur d'impulsion</label>
+                    <label for="dutyRange">Pulse width</label>
                     <span class="hs-val" id="dutyVal"></span>
                 </div>
                 <div class="horiz-slider-wrap">
-                    <button type="button" class="hs-btn" id="dutyMinus" aria-label="Diminuer la largeur d'impulsion">−</button>
-                    <input type="range" class="hs-range" id="dutyRange" min="5" max="95" step="1" aria-label="Largeur d'impulsion du carré">
-                    <button type="button" class="hs-btn" id="dutyPlus" aria-label="Augmenter la largeur d'impulsion">+</button>
+                    <button type="button" class="hs-btn" id="dutyMinus" aria-label="Decrease pulse width">−</button>
+                    <input type="range" class="hs-range" id="dutyRange" min="5" max="95" step="1" aria-label="Square pulse width">
+                    <button type="button" class="hs-btn" id="dutyPlus" aria-label="Increase pulse width">+</button>
                 </div>
             </div>
             <div class="sliders-grid" id="knobsGrid"></div>
@@ -598,23 +598,23 @@
         <section class="card acc collapsed" data-acc="sweep">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> ⟷ Freq Sweep</span>
-                <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Activer le balayage de fréquence">
+                <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Enable frequency sweep">
             </div>
             <div id="sweepBody" class="acc-body">
                 <div class="sweep-label" id="sweepLabel">50 Hz — 1200 Hz</div>
                 <div class="dual-slider-wrap" id="sweepSlider">
                     <div class="ds-track"></div>
                     <div class="ds-fill" id="sweepFill"></div>
-                    <div class="ds-handle" id="sweepH1" tabindex="0" role="slider" aria-label="Fréquence basse du balayage"></div>
-                    <div class="ds-handle" id="sweepH2" tabindex="0" role="slider" aria-label="Fréquence haute du balayage"></div>
+                    <div class="ds-handle" id="sweepH1" tabindex="0" role="slider" aria-label="Sweep low frequency"></div>
+                    <div class="ds-handle" id="sweepH2" tabindex="0" role="slider" aria-label="Sweep high frequency"></div>
                 </div>
                 <div class="sweep-controls">
                     <label class="sweep-toggle-label">
-                        <input type="checkbox" class="toggle-ios" id="invertToggle" aria-label="Inverser le balayage">
-                        <span>⇄ Inverser</span>
+                        <input type="checkbox" class="toggle-ios" id="invertToggle" aria-label="Invert sweep">
+                        <span>⇄ Invert</span>
                     </label>
                     <label class="sweep-toggle-label">
-                        <input type="checkbox" class="toggle-ios" id="doubleToggle" aria-label="Doubler le balayage">
+                        <input type="checkbox" class="toggle-ios" id="doubleToggle" aria-label="Double sweep">
                         <span>⋀ Double</span>
                     </label>
                 </div>
@@ -624,25 +624,25 @@
         <section class="card acc collapsed" id="autoPanPanel" data-acc="pan">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> 🔄 Auto-Pan / Orbit</span>
-                <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
+                <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Enable stereo auto-pan">
             </div>
             <div id="panBody" class="acc-body">
-                <div class="hs-label-row"><label>Sync rythme</label></div>
-                <div class="seg-row" id="panSyncSeg" role="group" aria-label="Synchronisation du pan sur le rythme">
-                    <button type="button" class="seg-btn" data-sync="free" aria-label="Pan libre">Libre</button>
-                    <button type="button" class="seg-btn" data-sync="half" aria-label="Pan synchronisé demi-vitesse">÷2</button>
-                    <button type="button" class="seg-btn" data-sync="x1" aria-label="Pan synchronisé même vitesse">×1</button>
-                    <button type="button" class="seg-btn" data-sync="x2" aria-label="Pan synchronisé double vitesse">×2</button>
+                <div class="hs-label-row"><label>Rhythm sync</label></div>
+                <div class="seg-row" id="panSyncSeg" role="group" aria-label="Pan sync to rhythm">
+                    <button type="button" class="seg-btn" data-sync="free" aria-label="Free pan">Free</button>
+                    <button type="button" class="seg-btn" data-sync="half" aria-label="Pan synced, half speed">÷2</button>
+                    <button type="button" class="seg-btn" data-sync="x1" aria-label="Pan synced, same speed">×1</button>
+                    <button type="button" class="seg-btn" data-sync="x2" aria-label="Pan synced, double speed">×2</button>
                 </div>
                 <div class="hs-row" id="panRateRow">
                     <div class="hs-label-row">
-                        <label for="panRate">Vitesse</label>
+                        <label for="panRate">Speed</label>
                         <span class="hs-val" id="panRateVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panRateMinus" aria-label="Diminuer la vitesse">−</button>
-                        <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Vitesse de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panRatePlus" aria-label="Augmenter la vitesse">+</button>
+                        <button type="button" class="hs-btn" id="panRateMinus" aria-label="Decrease speed">−</button>
+                        <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Auto-pan speed">
+                        <button type="button" class="hs-btn" id="panRatePlus" aria-label="Increase speed">+</button>
                     </div>
                 </div>
                 <div class="hs-row" id="panPhaseRow">
@@ -651,20 +651,20 @@
                         <span class="hs-val" id="panPhaseVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panPhaseMinus" aria-label="Diminuer la phase">−</button>
-                        <input type="range" class="hs-range" id="panPhase" min="0" max="360" step="5" aria-label="Déphasage du pan">
-                        <button type="button" class="hs-btn" id="panPhasePlus" aria-label="Augmenter la phase">+</button>
+                        <button type="button" class="hs-btn" id="panPhaseMinus" aria-label="Decrease phase">−</button>
+                        <input type="range" class="hs-range" id="panPhase" min="0" max="360" step="5" aria-label="Pan phase offset">
+                        <button type="button" class="hs-btn" id="panPhasePlus" aria-label="Increase phase">+</button>
                     </div>
                 </div>
                 <div class="hs-row">
                     <div class="hs-label-row">
-                        <label for="panDepth">Largeur</label>
+                        <label for="panDepth">Width</label>
                         <span class="hs-val" id="panDepthVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panDepthMinus" aria-label="Diminuer la largeur">−</button>
-                        <input type="range" class="hs-range" id="panDepth" min="0" max="100" step="1" aria-label="Largeur de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Augmenter la largeur">+</button>
+                        <button type="button" class="hs-btn" id="panDepthMinus" aria-label="Decrease width">−</button>
+                        <input type="range" class="hs-range" id="panDepth" min="0" max="100" step="1" aria-label="Auto-pan width">
+                        <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Increase width">+</button>
                     </div>
                 </div>
                 <div class="hs-row" id="panRatioRow">
@@ -673,43 +673,43 @@
                         <span class="hs-val" id="panRatioVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panRatioMinus" aria-label="Diminuer le ratio">−</button>
-                        <input type="range" class="hs-range" id="panRatio" min="20" max="80" step="1" aria-label="Ratio de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panRatioPlus" aria-label="Augmenter le ratio">+</button>
+                        <button type="button" class="hs-btn" id="panRatioMinus" aria-label="Decrease ratio">−</button>
+                        <input type="range" class="hs-range" id="panRatio" min="20" max="80" step="1" aria-label="Auto-pan ratio">
+                        <button type="button" class="hs-btn" id="panRatioPlus" aria-label="Increase ratio">+</button>
                     </div>
                 </div>
                 <label class="pan-link-label">
-                    <input type="checkbox" class="toggle-ios" id="panLinkRatio" aria-label="Lier le ratio du pan au ratio d'amplitude">
-                    <span>🔗 Lier au ratio d'amplitude</span>
+                    <input type="checkbox" class="toggle-ios" id="panLinkRatio" aria-label="Link pan ratio to amplitude ratio">
+                    <span>🔗 Link to amplitude ratio</span>
                 </label>
             </div>
         </section>
 
         <section class="card acc collapsed" data-acc="presets">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Préréglages</div>
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Presets</div>
             <div class="acc-body">
                 <div class="preset-row" id="builtinPresets"></div>
                 <div class="preset-row" id="userPresets"></div>
                 <div class="preset-save-row">
-                    <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Nom du préréglage…" aria-label="Nom du préréglage">
-                    <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Sauver</button>
+                    <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Preset name…" aria-label="Preset name">
+                    <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Save</button>
                 </div>
             </div>
         </section>
 
         <section class="panel device-section acc collapsed" id="deviceSection" data-acc="device">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🔊 Sortie audio</div>
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🔊 Audio output</div>
             <div class="acc-body">
                 <select id="deviceSelect" style="margin-top:4px">
-                    <option value="">Sélection par défaut</option>
+                    <option value="">Default device</option>
                 </select>
             </div>
         </section>
-        <p class="ios-msg" id="iosDeviceMsg">Le son est dirigé vers le périphérique iOS par défaut.</p>
+        <p class="ios-msg" id="iosDeviceMsg">Audio is routed to the default iOS device.</p>
     </main>
 </div>
 
-<nav class="transport" aria-label="Lecture">
+<nav class="transport" aria-label="Playback">
     <button type="button" class="btn-main btn-play" id="btnPlay" aria-pressed="false">
         <span class="icon" aria-hidden="true">▶</span><span>Play</span>
     </button>
@@ -777,7 +777,7 @@ function saveState() {
 }
 
 const BUILTIN_PRESETS = [
-    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Default',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, sweepActive:false, panActive:false } },
     { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, sweepActive:false, panActive:false } },
     { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, sweepActive:false, panActive:false } },
     { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, sweepActive:false, panActive:false } },
@@ -1001,10 +1001,10 @@ function updateAudioParams() {
 // --- WAVEFORM SELECTOR ---
 // Glyphes SVG (currentColor → suivent la couleur du bouton, actif ou non).
 const WAVEFORMS = [
-    { id:'sine',     label:'Sinus',    d:'M2,8 Q6.5,1 11,8 T20,8' },
-    { id:'square',   label:'Carré',    d:'M2,13 L2,4 L9,4 L9,13 L16,13 L16,4 L22,4' },
+    { id:'sine',     label:'Sine',    d:'M2,8 Q6.5,1 11,8 T20,8' },
+    { id:'square',   label:'Square',    d:'M2,13 L2,4 L9,4 L9,13 L16,13 L16,4 L22,4' },
     { id:'triangle', label:'Triangle', d:'M2,13 L7,4 L12,13 L17,4 L22,13' },
-    { id:'sawtooth', label:'Scie',     d:'M2,13 L9,4 L9,13 L16,4 L16,13 L22,4' }
+    { id:'sawtooth', label:'Saw',     d:'M2,13 L9,4 L9,13 L16,4 L16,13 L22,4' }
 ];
 
 function renderWaveSelect() {
@@ -1016,7 +1016,7 @@ function renderWaveSelect() {
         b.type = 'button';
         b.className = 'wave-btn';
         b.setAttribute('aria-pressed', state.waveform === w.id ? 'true' : 'false');
-        b.setAttribute('aria-label', "Forme d'onde " + w.label);
+        b.setAttribute('aria-label', "Waveform " + w.label);
         b.innerHTML =
             '<svg class="wave-glyph" viewBox="0 0 24 16" fill="none" stroke="currentColor" ' +
             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -1061,11 +1061,11 @@ function bindDuty() {
 
 // --- KNOBS (grid sliders) ---
 const knobsDef = [
-    { id:'freq',     label:'Fréquence', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },
+    { id:'freq',     label:'Frequency', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },
     { id:'volume',   label:'Volume',    min:0,   max:100,  step:1,    color:'#9c5e16', fmt: v => v+' %' },
-    { id:'rythm',    label:'Rythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
+    { id:'rythm',    label:'Rhythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
     { id:'depth',    label:'Depth',     min:0,   max:100,  step:1,    color:'#1f7a4d', fmt: v => v+' %' },
-    { id:'balance',  label:'Balance',   min:-100, max:100, step:1,    color:'#245fa6', fmt: v => { v=+v; return v===0 ? 'Centre' : (v<0 ? `◀ L ${-v}` : `R ${v} ▶`); } },
+    { id:'balance',  label:'Balance',   min:-100, max:100, step:1,    color:'#245fa6', fmt: v => { v=+v; return v===0 ? 'Center' : (v<0 ? `◀ L ${-v}` : `R ${v} ▶`); } },
     { id:'ratio',    label:'Ratio',     min:20,  max:80,   step:1,    color:'#a04335', fmt: v => v+'/'+(100-v) }
 ];
 const knobRefs = {};
@@ -1137,9 +1137,9 @@ function renderKnobs() {
         const btnRow = document.createElement('div');
         btnRow.className = 'knob-btn-row';
         const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'knob-btn'; btnM.textContent = '−';
-        btnM.setAttribute('aria-label', 'Diminuer ' + k.label);
+        btnM.setAttribute('aria-label', 'Decrease ' + k.label);
         const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'knob-btn'; btnP.textContent = '+';
-        btnP.setAttribute('aria-label', 'Augmenter ' + k.label);
+        btnP.setAttribute('aria-label', 'Increase ' + k.label);
         if (k.disabled) { btnM.disabled = true; btnP.disabled = true; }
 
         const updateKnob = (nv) => {
@@ -1288,11 +1288,11 @@ function updatePanUI() {
     document.getElementById('panRateVal').textContent = synced
         ? '⟲ ' + state.panSync.replace('half','÷2').replace('x1','×1').replace('x2','×2')
         : (+state.panRate).toFixed(2) + ' Hz';
-    document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Centre' : state.panDepth + ' %';
+    document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Center' : state.panDepth + ' %';
     document.getElementById('panRatioVal').textContent = effRatio + '/' + (100 - effRatio) + (state.panLinkRatio ? ' 🔗' : '');
     let pv = state.panPhase + '°';
-    if (state.panPhase === 0 || state.panPhase === 360) pv = '0° (aligné)';
-    else if (state.panPhase === 180) pv = '180° (inversé)';
+    if (state.panPhase === 0 || state.panPhase === 360) pv = '0° (aligned)';
+    else if (state.panPhase === 180) pv = '180° (inverted)';
     document.getElementById('panPhaseVal').textContent = pv;
 
     // Boutons de sync
@@ -1397,7 +1397,7 @@ function renderUserPresets() {
         x.textContent = '✕';
         x.dataset.idx = i;
         x.setAttribute('role', 'button');
-        x.setAttribute('aria-label', 'Supprimer le préréglage ' + p.name);
+        x.setAttribute('aria-label', 'Delete preset ' + p.name);
         b.appendChild(x);
         b.addEventListener('click', e => {
             if (e.target.dataset.idx !== undefined) {

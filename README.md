@@ -1,72 +1,72 @@
 # Wave Generator
 
-**Générateur d'ondes web conçu pour l'électrostimulation (e‑stim), en particulier le *stereostim*.**
+**A web-based wave generator built for electrostimulation (e‑stim), in particular *stereostim*.**
 
-L'application synthétise un signal audio stéréo en temps réel (Web Audio API) qui, envoyé sur la sortie audio du téléphone ou de l'ordinateur, sert à piloter des électrodes. La séparation gauche/droite et l'auto‑panoramique permettent de créer des sensations de **déplacement** entre les électrodes, caractéristiques du stereostim.
+The app synthesizes a stereo audio signal in real time (Web Audio API). Sent to the audio output of a phone or computer, this signal is used to drive electrodes. The left/right separation and the auto‑pan make it possible to create sensations of **movement** between electrodes — the hallmark of stereostim.
 
-C'est un **fichier HTML unique, autonome et 100 % côté client** : aucune dépendance, aucun serveur, aucune donnée envoyée. Il fonctionne dans le navigateur (optimisé mobile / iOS).
+It is a **single, self‑contained, 100 % client‑side HTML file**: no dependencies, no server, no data sent anywhere. It runs in the browser (mobile / iOS optimized).
 
-> ⚠️ **Usage responsable.** L'électrostimulation ne doit jamais traverser la cage thoracique ni le cœur : à n'utiliser que sous la ceinture. Commencez toujours à faible intensité. Cet outil est fourni à des fins expérimentales/récréatives, sans garantie ; vous êtes seul responsable de son usage.
+> ⚠️ **Use responsibly.** Electrostimulation must never cross the chest or the heart — use below the waist only. Always start at low intensity. This tool is provided for experimental/recreational purposes, with no warranty; you are solely responsible for how you use it.
 
 ---
 
-## Fonctionnalités
+## Features
 
-### Formes d'onde
-- **Sinus, Carré, Triangle, Dent de scie**
-- **Rapport cyclique (PWM)** réglable sur le carré (5–95 %) — transforme le carré en train d'impulsions, synthèse band‑limited (PeriodicWave) sans offset continu (DC nul)
+### Waveforms
+- **Sine, Square, Triangle, Saw**
+- **Pulse width (PWM)** adjustable on the square wave (5–95 %) — turns the square into a pulse train; band‑limited synthesis (PeriodicWave) with no DC offset
 
-### Porteuse
-- **Fréquence** 50–1200 Hz
+### Carrier
+- **Frequency** 50–1200 Hz
 - **Volume**
 
-### Modulation rythmique (AM)
-- **Rythm** — vitesse du LFO d'amplitude (tremolo)
-- **Depth** — profondeur de la modulation
-- **Ratio** — asymétrie de l'enveloppe (attaque/déclin via *phase warping*)
+### Rhythmic modulation (AM)
+- **Rhythm** — amplitude LFO rate (tremolo)
+- **Depth** — modulation depth
+- **Ratio** — envelope asymmetry (attack/decay via phase warping)
 
-### Balayage de fréquence (Freq Sweep)
-- Plage basse/haute réglable au double‑curseur
-- **Inverser** et **Double** balayage
+### Frequency sweep
+- Low/high range set with a dual slider
+- **Invert** and **Double** sweep
 
-### Stéréo & panoramique
-- **Balance L/R** — loi de panoramique à **puissance constante**
-- **Auto‑Pan / Orbit** : oscillation de la position stéréo (les deux canaux varient en sens opposé)
-  - Mode **Libre** ou **synchronisé au rythme** (÷2 / ×1 / ×2)
-  - **Vitesse**, **Phase** (0–360°, 180° = inversé), **Largeur**, **Ratio** (asymétrie)
-  - **Lier au ratio d'amplitude**
+### Stereo & panning
+- **Balance L/R** — **constant‑power** panning law
+- **Auto‑Pan / Orbit**: oscillates the stereo position (both channels move in opposite directions)
+  - **Free** mode or **synced to the rhythm** (÷2 / ×1 / ×2)
+  - **Speed**, **Phase** (0–360°, 180° = inverted), **Width**, **Ratio** (asymmetry)
+  - **Link to amplitude ratio**
 
-### Visualisation
-- **Oscilloscope L/R** temps réel et **VU‑mètre**, intégrés dans le bandeau collant (toujours visibles)
+### Visualization
+- Real‑time **L/R oscilloscope** and **VU meter**, embedded in the sticky header (always visible)
 
-### Préréglages
-- Intégrés : Défaut, Delta, Theta, Alpha, Sweep ♭, Orbit
-- **Sauvegarde de préréglages personnalisés**
+### Presets
+- Built‑in: Default, Delta, Theta, Alpha, Sweep ♭, Orbit
+- **Save your own custom presets**
 
-### Confort & système
-- **Play / Hold** (gel du signal)
-- **Anti‑veille de l'écran** (Screen Wake Lock) pendant la lecture — empêche le téléphone de se mettre en veille et de couper le signal
-- **Sections repliables** (accordéon), état mémorisé
-- **Sélection du périphérique de sortie audio**
-- **Persistance** des réglages (localStorage)
-- Accessibilité : libellés ARIA, navigation clavier, cibles tactiles ≥ 44 px
+### Comfort & system
+- **Play / Hold** (freeze the signal)
+- **Screen Wake Lock** while playing — keeps the phone from sleeping and cutting the signal
+- **Collapsible sections** (accordion), state remembered
+- **Audio output device** selection
+- **Settings persistence** (localStorage)
+- Accessibility: ARIA labels, keyboard navigation, ≥ 44 px touch targets
 
 ---
 
-## Utilisation
+## Usage
 
-Ouvrir `index.html` dans un navigateur, ou le servir depuis un serveur web :
+Open `index.html` in a browser, or serve it from a web server:
 
 ```bash
 python3 -m http.server 8080
-# puis http://localhost:8080
+# then http://localhost:8080
 ```
 
-> Servez la page en **HTTPS** (ou `http://localhost`) : certaines API (sélection du périphérique de sortie, Wake Lock) sont bloquées sur du HTTP non‑local.
-> Le Wake Lock nécessite **iOS 16.4+** (ou un navigateur récent).
+> Serve the page over **HTTPS** (or `http://localhost`): some APIs (audio output selection, Wake Lock) are blocked on non‑local HTTP.
+> Wake Lock requires **iOS 16.4+** (or a recent browser).
 
 ---
 
-## Technique
-- **Web Audio API** : porteuse (`OscillatorNode` / `PeriodicWave`), modulation d'amplitude et balayage pilotés par des `AudioBufferSourceNode` (LFO en boucle), panoramique via `WaveShaper`, métrage L/R par `ChannelSplitter` + `AnalyserNode`.
-- Aucune dépendance externe, un seul fichier `index.html`.
+## Technical
+- **Web Audio API**: carrier (`OscillatorNode` / `PeriodicWave`), amplitude modulation and sweep driven by looping `AudioBufferSourceNode` LFOs, panning via `WaveShaper`, L/R metering via `ChannelSplitter` + `AnalyserNode`.
+- No external dependencies, a single `index.html` file.
