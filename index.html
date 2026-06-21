@@ -1496,9 +1496,32 @@ function togglePlay() {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
         btn.innerHTML = '<span class="icon" aria-hidden="true">▶</span><span>Play</span>';
+        releaseWakeLock();
     }
     if (audioInit) updateAudioParams();
 }
+
+// --- WAKE LOCK (empêche la mise en veille de l'écran pendant la lecture) ---
+// API Screen Wake Lock (iOS 16.4+, Android, desktop). Le verrou est libéré
+// automatiquement par le navigateur quand l'app passe en arrière-plan, donc
+// on le réacquiert au retour si le signal tourne toujours.
+let wakeLock = null;
+
+async function requestWakeLock() {
+    if (wakeLock || !('wakeLock' in navigator)) return;
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) { /* refusé (ex. Low Power Mode) ou non supporté */ }
+}
+
+function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.playing && !wakeLock) requestWakeLock();
+});
 
 // --- DEVICE SELECTOR ---
 function setupDevices() {
@@ -1579,6 +1602,8 @@ window.addEventListener('load', () => {
 
     document.getElementById('btnPlay').addEventListener('click', () => {
         if (!audioInit) initAudio();
+        // Demandé dans le geste utilisateur (iOS exige une activation transitoire).
+        if (!state.playing) requestWakeLock();
         if (ctx.state === 'suspended') ctx.resume().then(togglePlay);
         else togglePlay();
     });
