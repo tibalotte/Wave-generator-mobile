@@ -562,44 +562,76 @@
         .knob-slider:focus-visible,
         .hs-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 6px; }
 
-        /* ---- Mode paysage sur téléphone ----
-           Hauteur très limitée : on compacte le header et la barre de
-           transport pour récupérer de la place, et on répartit les cartes
-           sur deux colonnes afin d'exploiter la largeur disponible. */
+        /* ---- Mode paysage sur téléphone : RAIL LATÉRAL DROIT ----
+           En paysage la hauteur est rare mais la largeur abondante. On sort
+           le visualiseur (haut) et le transport (bas) du flux haut/bas pour
+           les empiler dans un rail vertical fixe à droite, ce qui rend toute
+           la hauteur au contenu. Les cartes occupent le reste via une grille
+           fluide qui adapte seule son nombre de colonnes à la largeur.
+           (Conception : patron « side-rail » recommandé pour ce cas.) */
         @media (orientation: landscape) and (max-height: 600px) {
-            .app { max-width: none; }
+            :root { --rail-w: clamp(200px, 30vw, 260px); }
 
+            .app {
+                max-width: none;
+                flex-direction: row;
+                height: 100vh;
+                height: 100dvh;
+            }
+
+            /* Fond continu du rail (relie visuellement header + transport). */
+            .app::after {
+                content: '';
+                position: fixed;
+                top: 0; bottom: 0; right: 0;
+                width: var(--rail-w);
+                background: var(--brand-deep);
+                border-left: 1px solid var(--line);
+                z-index: 10;
+            }
+
+            /* Visualiseur + titre : haut du rail droit (hors flux). */
             .app-header {
-                padding-top: calc(env(safe-area-inset-top) + 6px);
-                padding-bottom: 6px;
+                position: fixed;
+                top: 0; right: 0;
+                width: var(--rail-w);
+                z-index: 31;
+                padding: calc(env(safe-area-inset-top) + 8px)
+                         max(12px, env(safe-area-inset-right)) 8px 12px;
             }
             .app-header h1 { font-size: 0.95rem; }
-            .vis-container { height: 52px; }
+            .vis-container { height: 110px; }
 
-            /* Cartes réparties sur deux colonnes (la grille scrolle bien à la
-               verticale, contrairement au multi-colonnes CSS). */
+            /* Contenu scrollable : tout sauf la largeur du rail. */
             .scroller {
+                flex: 1;
+                height: 100vh;
+                height: 100dvh;
+                margin-right: var(--rail-w);
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
                 grid-auto-rows: min-content;
                 align-items: start;
                 align-content: start;
-                column-gap: 14px;
-                padding-top: 12px;
-                padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
+                gap: 12px 14px;
+                padding: 12px 14px calc(env(safe-area-inset-bottom) + 16px);
+                padding-left: max(14px, env(safe-area-inset-left));
             }
             .scroller > .ios-msg { grid-column: 1 / -1; }
 
-            /* Transport en pleine largeur (on annule le cadrage 520px) et
-               boutons plus bas pour gagner de la hauteur. */
+            /* Play / Hold : bas du rail droit, empilés verticalement. */
             .transport {
-                left: 0; right: 0;
+                top: auto; left: auto; right: 0; bottom: 0;
                 transform: none;
-                width: auto;
-                padding-top: 8px;
-                padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+                width: var(--rail-w);
+                flex-direction: column;
+                z-index: 31;
+                box-shadow: none;
+                border-top: none;
+                padding: 8px max(12px, env(safe-area-inset-right))
+                         calc(env(safe-area-inset-bottom) + 8px) 12px;
             }
-            .btn-main { min-height: 46px; font-size: 1.05rem; }
+            .btn-main { min-height: 52px; font-size: 1.1rem; }
         }
 
         @media (prefers-reduced-motion: reduce) {
