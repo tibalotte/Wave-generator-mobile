@@ -554,6 +554,46 @@
         .knob-slider:focus-visible,
         .hs-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 6px; }
 
+        /* ---- Mode paysage sur téléphone ----
+           Hauteur très limitée : on compacte le header et la barre de
+           transport pour récupérer de la place, et on répartit les cartes
+           sur deux colonnes afin d'exploiter la largeur disponible. */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .app { max-width: none; }
+
+            .app-header {
+                padding-top: calc(env(safe-area-inset-top) + 6px);
+                padding-bottom: 6px;
+            }
+            .app-header h1 { font-size: 0.95rem; }
+            .vis-container { height: 52px; }
+
+            /* Cartes réparties sur deux colonnes (la grille scrolle bien à la
+               verticale, contrairement au multi-colonnes CSS). */
+            .scroller {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-auto-rows: min-content;
+                align-items: start;
+                align-content: start;
+                column-gap: 14px;
+                padding-top: 12px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
+            }
+            .scroller > .ios-msg { grid-column: 1 / -1; }
+
+            /* Transport en pleine largeur (on annule le cadrage 520px) et
+               boutons plus bas pour gagner de la hauteur. */
+            .transport {
+                left: 0; right: 0;
+                transform: none;
+                width: auto;
+                padding-top: 8px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+            }
+            .btn-main { min-height: 46px; font-size: 1.05rem; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             * { transition: none !important; }
         }
@@ -1258,12 +1298,17 @@ let sWrap, sFill, sH1, sH2, sBody;
 function updateSweepUI() {
     const minF = 50, maxF = 1200;
     const w = sWrap.offsetWidth - 24;
-    const p1 = (state.sweepLo - minF) / (maxF - minF);
-    const p2 = (state.sweepHi - minF) / (maxF - minF);
-    sH1.style.left = `calc(12px + ${p1*w}px)`;
-    sH2.style.left = `calc(12px + ${p2*w}px)`;
-    sFill.style.left = `calc(12px + ${p1*w}px)`;
-    sFill.style.width = `${(p2-p1)*w}px`;
+    // Section repliée / non encore mise en page : largeur nulle. On ne
+    // positionne pas les poignées (sinon valeurs aberrantes) ; elles seront
+    // replacées à l'ouverture ou au prochain relayout, dès que w > 0.
+    if (w > 0) {
+        const p1 = (state.sweepLo - minF) / (maxF - minF);
+        const p2 = (state.sweepHi - minF) / (maxF - minF);
+        sH1.style.left = `calc(12px + ${p1*w}px)`;
+        sH2.style.left = `calc(12px + ${p2*w}px)`;
+        sFill.style.left = `calc(12px + ${p1*w}px)`;
+        sFill.style.width = `${(p2-p1)*w}px`;
+    }
     document.getElementById('sweepLabel').textContent = `${state.sweepLo} Hz — ${state.sweepHi} Hz`;
     sBody.style.opacity = state.sweepActive ? '1' : '0.5';
     sBody.style.pointerEvents = state.sweepActive ? 'auto' : 'none';
@@ -1707,7 +1752,24 @@ window.addEventListener('load', () => {
     }
     requestAnimationFrame(() => waitForLayout(10));
     requestAnimationFrame(animate);
-    window.addEventListener('resize', () => { initCanvas(); updateSweepUI(); });
+
+    // Recalage de l'affichage après un redimensionnement / une rotation.
+    // initCanvas() et updateSweepUI() lisent les dimensions réelles des
+    // éléments ; or après une rotation, iOS met à jour ces dimensions avec un
+    // léger retard. On recalcule donc tout de suite (réactivité) PUIS de
+    // nouveau une fois la mise en page stabilisée, afin que le canvas et les
+    // poignées se replacent correctement dans la nouvelle orientation — et au
+    // retour en portrait.
+    let relayoutT1 = null, relayoutT2 = null;
+    function relayout() { initCanvas(); updateSweepUI(); }
+    function scheduleRelayout() {
+        requestAnimationFrame(relayout);
+        clearTimeout(relayoutT1); relayoutT1 = setTimeout(relayout, 180);
+        clearTimeout(relayoutT2); relayoutT2 = setTimeout(relayout, 450);
+    }
+    window.addEventListener('resize', scheduleRelayout);
+    window.addEventListener('orientationchange', scheduleRelayout);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleRelayout);
 });
 
 </script>
