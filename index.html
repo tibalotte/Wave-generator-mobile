@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0e3a48">
-    <title>Wave Generator</title>
+    <title>Bean's wave generator</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
         :root {
-            /* Marque */
-            --brand:        #0e5366;   /* teal app */
-            --brand-deep:   #0a3a48;   /* teal foncé (header / barres) */
-            --bg:           #07171d;   /* fond global */
-            --surface:      #fbfbfa;   /* cartes claires */
-            --surface-2:    rgba(255,255,255,0.07); /* panneaux translucides */
+            /* Brand */
+            --brand:        #0e5366;   /* app teal */
+            --brand-deep:   #0a3a48;   /* dark teal (header / bars) */
+            --bg:           #07171d;   /* global background */
+            --surface:      #fbfbfa;   /* light cards */
+            --surface-2:    rgba(255,255,255,0.07); /* translucent panels */
             --line:         rgba(255,255,255,0.12);
-            /* Texte — contrastes WCAG AA vérifiés */
-            --on-brand:     #ffffff;        /* blanc sur teal = 5.8:1  AA */
-            --ink:          #16242b;        /* texte sur surface claire */
-            --ink-soft:     #4a5860;        /* valeurs / secondaire ≈ 5:1 */
+            /* Text — WCAG AA verified contrasts */
+            --on-brand:     #ffffff;        /* white on teal = 5.8:1 AA */
+            --ink:          #16242b;        /* text on light surface */
+            --ink-soft:     #4a5860;        /* values / secondary ≈ 5:1 */
             --ink-mute:     #5e6c73;
             /* Actions */
-            --go:           #1f9d57;   /* play actif */
+            --go:           #1f9d57;   /* active play */
             --stop:         #c8372f;   /* stop */
-            --hold:         #b8860b;   /* hold actif */
-            --focus:        #ffd24a;   /* anneau de focus (haut contraste) */
+            --hold:         #b8860b;   /* active hold */
+            --focus:        #ffd24a;   /* focus ring (high contrast) */
             --radius:       16px;
         }
 
@@ -38,17 +38,17 @@
             -webkit-text-size-adjust: 100%;
         }
 
-        /* ---- Plein écran, plus de faux cadre de téléphone ---- */
+        /* ---- Full screen, no fake phone frame ---- */
         .app {
             min-height: 100%;
             background: var(--brand);
-            max-width: 520px;        /* limité seulement sur tablette/desktop */
+            max-width: 520px;        /* limited only on tablet/desktop */
             margin: 0 auto;
             display: flex;
             flex-direction: column;
         }
 
-        /* ---- Header collant ---- */
+        /* ---- Sticky header ---- */
         .app-header {
             position: sticky;
             top: 0;
@@ -66,8 +66,16 @@
             letter-spacing: 0.02em;
             margin: 0;
         }
+        .app-version {
+            font-size: 0.72rem;
+            font-weight: 600;
+            opacity: 0.65;
+            letter-spacing: 0;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
 
-        /* ---- Zone scrollable ---- */
+        /* ---- Scrollable area ---- */
         .scroller {
             flex: 1;
             overflow-y: auto;
@@ -77,7 +85,7 @@
             padding-right: max(16px, env(safe-area-inset-right));
         }
 
-        /* ---- Visualiseur (dans le bandeau collant) ---- */
+        /* ---- Visualizer (in sticky header) ---- */
         .vis-container {
             display: flex;
             gap: 8px;
@@ -100,7 +108,7 @@
             border: 1px solid var(--line);
         }
 
-        /* ---- Cartes ---- */
+        /* ---- Cards ---- */
         .card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -125,7 +133,7 @@
             margin-bottom: 12px;
         }
 
-        /* ---- Accordéon (replier les sections) ---- */
+        /* ---- Accordion (collapse sections) ---- */
         .acc-toggle { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         .acc-chevron { display: inline-block; transition: transform 0.2s; font-size: 0.8em; opacity: 0.85; }
         .acc:not(.collapsed) .acc-chevron { transform: rotate(90deg); }
@@ -133,7 +141,7 @@
         .acc.collapsed .section-title.acc-toggle,
         .acc.collapsed .sweep-header.acc-toggle { margin-bottom: 0; }
 
-        /* ---- Sélecteur de forme d'onde ---- */
+        /* ---- Waveform selector ---- */
         .wave-select {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -141,9 +149,9 @@
             margin-bottom: 18px;
         }
         .wave-btn {
-            min-height: 56px;            /* cible tactile généreuse */
+            min-height: 56px;            /* generous touch target */
             border-radius: 12px;
-            border: 1.5px solid #5d717a; /* contour ≥3:1 sur carte claire (1.4.11) */
+            border: 1.5px solid #5d717a; /* outline ≥3:1 on light card (1.4.11) */
             background: #e8eef0;
             color: #12343d;
             font-size: 0.78rem;
@@ -166,7 +174,7 @@
         }
         .wave-btn:active { filter: brightness(0.95); }
 
-        /* ---- Grille de knobs ---- */
+        /* ---- Knobs grid ---- */
         .sliders-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -194,7 +202,7 @@
         }
         .knob-btn, .hs-btn {
             background: #e8eef0;
-            border: 1.5px solid #5d717a;   /* contour ≥3:1 sur la carte claire (1.4.11) */
+            border: 1.5px solid #5d717a;   /* outline ≥3:1 on light card (1.4.11) */
             border-radius: 10px;
             font-size: 1.5rem;
             font-weight: 700;
@@ -208,17 +216,17 @@
         }
         .knob-btn {
             flex: 1;
-            height: 44px;                  /* cible tactile 44px (2.5.5 AAA) */
+            height: 44px;                  /* 44px touch target (2.5.5 AAA) */
         }
         .knob-btn:active, .hs-btn:active { background: #c3d0d4; }
         button:disabled { cursor: default; }
 
-        /* ---- Sliders verticaux (knobs) ---- */
+        /* ---- Vertical sliders (knobs) ---- */
         .knob-slider, .hs-range {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 34px;                  /* hauteur tactile généreuse */
+            height: 34px;                  /* generous touch height */
             background: transparent;
             outline: none;
             cursor: pointer;
@@ -246,7 +254,7 @@
             background: var(--thumb-color, #0f6b7a); border: 3px solid #fff;
         }
 
-        /* ---- Sliders horizontaux ---- */
+        /* ---- Horizontal sliders ---- */
         .hs-row { margin-bottom: 16px; }
         .hs-row:last-child { margin-bottom: 0; }
         .hs-label-row {
@@ -291,10 +299,10 @@
             background: #0f6b7a; border: 3px solid #fff;
         }
 
-        /* ---- Auto-Pan : lignes désactivées ---- */
+        /* ---- Auto-Pan : disabled lines ---- */
         #autoPanPanel .hs-row.row-disabled { opacity: 0.4; pointer-events: none; }
 
-        /* ---- Contrôle segmenté (sync du pan) — thème carte claire ---- */
+        /* ---- Segmented control (pan sync) — light card theme ---- */
         .seg-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -327,7 +335,7 @@
             margin-top: 4px;
         }
 
-        /* ---- Toggles iOS — état lisible par position + couleur AA ---- */
+        /* ---- iOS Toggles — state readable by position + AA color ---- */
         .sweep-header {
             display: flex;
             justify-content: space-between;
@@ -424,7 +432,7 @@
             min-height: 44px;
             padding: 8px 16px;
             background: #e8eef0;
-            border: 1.5px solid #5d717a;  /* contour visible 1.4.11 */
+            border: 1.5px solid #5d717a;  /* visible outline 1.4.11 */
             border-radius: 12px;
             color: #12343d;
             font-size: 0.95rem;
@@ -453,7 +461,7 @@
             border: 1.5px solid rgba(255,255,255,0.5);
             background: rgba(255,255,255,0.95);
             color: var(--ink);
-            font-size: 16px;            /* ≥16px : évite le zoom auto iOS */
+            font-size: 16px;            /* ≥16px: avoids iOS auto-zoom */
             outline: none;
         }
         .preset-name-input::placeholder { color: #67757c; }
@@ -474,7 +482,7 @@
         }
         .btn-save-preset:active { filter: brightness(0.92); }
 
-        /* ---- Sélecteur de sortie ---- */
+        /* ---- Output Selector ---- */
         .device-section label.field-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
         select {
             width: 100%;
@@ -488,7 +496,7 @@
         }
         .ios-msg { margin-top: 8px; font-size: 0.9rem; color: var(--on-brand); display: none; }
 
-        /* ---- Barre de transport fixe ---- */
+        /* ---- Fixed transport bar ---- */
         .transport {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -542,7 +550,7 @@
         }
         .btn-main .icon { font-size: 1.1rem; }
 
-        /* ---- Focus visible (2.4.7 / 2.4.13) ---- */
+        /* ---- Visible focus (2.4.7 / 2.4.13) ---- */
         button:focus-visible,
         input:focus-visible,
         select:focus-visible,
@@ -554,6 +562,66 @@
         .knob-slider:focus-visible,
         .hs-range:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 6px; }
 
+        /* ---- Landscape mode on mobile : 3 Columns Grid ---- */
+        @media (orientation: landscape) and (max-height: 600px) {
+            :root { --rail-w: clamp(230px, 30vw, 280px); }
+
+            body { background: var(--bg); }
+            
+            .app {
+                max-width: none;
+                display: grid;
+                grid-template-columns: var(--rail-w) 1fr 1fr;
+                grid-auto-rows: min-content;
+                gap: 14px;
+                height: 100vh; height: 100dvh;
+                overflow-y: auto;
+                padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) 0;
+                background: var(--bg);
+                flex-direction: unset;
+            }
+
+            /* Left rail continuous background */
+            .app::after {
+                content: '';
+                position: fixed;
+                top: 0; bottom: 0; left: 0;
+                width: calc(var(--rail-w) + env(safe-area-inset-left));
+                background: var(--brand-deep);
+                border-right: 1px solid var(--line);
+                z-index: 0;
+            }
+
+            /* Break out scroller children into the grid */
+            .scroller { display: contents; }
+
+            /* Column 1 (Left) */
+            .app-header {
+                grid-column: 1; grid-row: 1;
+                position: static;
+                padding: 0 12px 0 max(12px, env(safe-area-inset-left));
+                background: transparent; border: none; z-index: 1;
+            }
+            .transport {
+                grid-column: 1; grid-row: 2;
+                position: static; width: auto; left: auto; transform: none;
+                flex-direction: column;
+                padding: 0 12px 0 max(12px, env(safe-area-inset-left));
+                box-shadow: none; border: none; background: transparent; z-index: 1;
+            }
+            .btn-main { min-height: 52px; font-size: 1.1rem; }
+            #presetsSection { grid-column: 1; grid-row: 3; margin: 0 12px 0 max(12px, env(safe-area-inset-left)); z-index: 1; }
+            #deviceSection { grid-column: 1; grid-row: 4; margin: 0 12px 0 max(12px, env(safe-area-inset-left)); z-index: 1; }
+            #iosDeviceMsg { grid-column: 1; grid-row: 5; margin: 0 12px 0 max(12px, env(safe-area-inset-left)); z-index: 1; color: rgba(255,255,255,0.7); }
+
+            /* Column 2 (Center) */
+            #mainSettings { grid-column: 2; grid-row: 1 / span 5; margin: 0; z-index: 1; }
+
+            /* Column 3 (Right) */
+            #autoPanPanel { grid-column: 3; grid-row: 1; margin: 0; z-index: 1; }
+            #sweepSection { grid-column: 3; grid-row: 2; margin: 0; z-index: 1; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             * { transition: none !important; }
         }
@@ -563,7 +631,8 @@
 <body>
 <div class="app">
     <header class="app-header">
-        <h1>Wave Generator</h1>
+        <!-- Instruction IA : Incrémenter le numéro de version ci-dessous à chaque nouvelle requête de modification. -->
+        <h1>Bean's wave generator <span class="app-version">v1.3</span></h1>
         <div class="vis-container" aria-hidden="true">
             <canvas class="scope-canvas" id="scopeCanvas"></canvas>
             <canvas class="vu-canvas" id="vuCanvas"></canvas>
@@ -571,64 +640,45 @@
     </header>
 
     <main class="scroller">
-        <section class="card" aria-label="Réglages principaux">
-            <div class="wave-select" id="waveSelect" role="group" aria-label="Forme d'onde"></div>
+        <section class="card" id="mainSettings" aria-label="Main settings">
+            <div class="wave-select" id="waveSelect" role="group" aria-label="Waveform"></div>
+            <div class="hs-row" id="dutyRow" style="display:none; margin-bottom:18px">
+                <div class="hs-label-row">
+                    <label for="dutyRange">Pulse Width</label>
+                    <span class="hs-val" id="dutyVal"></span>
+                </div>
+                <div class="horiz-slider-wrap">
+                    <button type="button" class="hs-btn" id="dutyMinus" aria-label="Decrease pulse width">−</button>
+                    <input type="range" class="hs-range" id="dutyRange" min="5" max="95" step="1" aria-label="Square pulse width">
+                    <button type="button" class="hs-btn" id="dutyPlus" aria-label="Increase pulse width">+</button>
+                </div>
+            </div>
             <div class="sliders-grid" id="knobsGrid"></div>
         </section>
 
-        <section class="card acc collapsed" data-acc="sweep">
-            <div class="sweep-header acc-toggle">
-                <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> ⟷ Freq Sweep</span>
-                <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Activer le balayage de fréquence">
-            </div>
-            <div id="sweepBody" class="acc-body">
-                <div class="sweep-label" id="sweepLabel">50 Hz — 1200 Hz</div>
-                <div class="dual-slider-wrap" id="sweepSlider">
-                    <div class="ds-track"></div>
-                    <div class="ds-fill" id="sweepFill"></div>
-                    <div class="ds-handle" id="sweepH1" tabindex="0" role="slider" aria-label="Fréquence basse du balayage"></div>
-                    <div class="ds-handle" id="sweepH2" tabindex="0" role="slider" aria-label="Fréquence haute du balayage"></div>
-                </div>
-                <div class="sweep-controls">
-                    <label class="sweep-toggle-label">
-                        <input type="checkbox" class="toggle-ios" id="invertToggle" aria-label="Inverser le balayage">
-                        <span>⇄ Inverser</span>
-                    </label>
-                    <label class="sweep-toggle-label">
-                        <input type="checkbox" class="toggle-ios" id="doubleToggle" aria-label="Doubler le balayage">
-                        <span>⋀ Double</span>
-                    </label>
-                </div>
-            </div>
-        </section>
-
-        <section class="card acc collapsed" data-acc="detune" aria-label="Réglages stéréo et détune">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎚 Stéréo &amp; Détune</div>
-            <div id="slidersWrap" class="acc-body"></div>
-        </section>
-
+        <!-- Auto-Pan swapped with Sweep -->
         <section class="card acc collapsed" id="autoPanPanel" data-acc="pan">
             <div class="sweep-header acc-toggle">
                 <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> 🔄 Auto-Pan / Orbit</span>
-                <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Activer l'auto-pan stéréo">
+                <input type="checkbox" class="toggle-ios" id="panToggle" aria-label="Enable stereo auto-pan">
             </div>
             <div id="panBody" class="acc-body">
-                <div class="hs-label-row"><label>Sync rythme</label></div>
-                <div class="seg-row" id="panSyncSeg" role="group" aria-label="Synchronisation du pan sur le rythme">
-                    <button type="button" class="seg-btn" data-sync="free" aria-label="Pan libre">Libre</button>
-                    <button type="button" class="seg-btn" data-sync="half" aria-label="Pan synchronisé demi-vitesse">÷2</button>
-                    <button type="button" class="seg-btn" data-sync="x1" aria-label="Pan synchronisé même vitesse">×1</button>
-                    <button type="button" class="seg-btn" data-sync="x2" aria-label="Pan synchronisé double vitesse">×2</button>
+                <div class="hs-label-row"><label>Beat Sync</label></div>
+                <div class="seg-row" id="panSyncSeg" role="group" aria-label="Pan sync to rhythm">
+                    <button type="button" class="seg-btn" data-sync="free" aria-label="Free pan">Free</button>
+                    <button type="button" class="seg-btn" data-sync="half" aria-label="Half-speed synced pan">÷2</button>
+                    <button type="button" class="seg-btn" data-sync="x1" aria-label="Normal-speed synced pan">×1</button>
+                    <button type="button" class="seg-btn" data-sync="x2" aria-label="Double-speed synced pan">×2</button>
                 </div>
                 <div class="hs-row" id="panRateRow">
                     <div class="hs-label-row">
-                        <label for="panRate">Vitesse</label>
+                        <label for="panRate">Speed</label>
                         <span class="hs-val" id="panRateVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panRateMinus" aria-label="Diminuer la vitesse">−</button>
-                        <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Vitesse de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panRatePlus" aria-label="Augmenter la vitesse">+</button>
+                        <button type="button" class="hs-btn" id="panRateMinus" aria-label="Decrease speed">−</button>
+                        <input type="range" class="hs-range" id="panRate" min="0.02" max="4" step="0.02" aria-label="Auto-pan speed">
+                        <button type="button" class="hs-btn" id="panRatePlus" aria-label="Increase speed">+</button>
                     </div>
                 </div>
                 <div class="hs-row" id="panPhaseRow">
@@ -637,20 +687,20 @@
                         <span class="hs-val" id="panPhaseVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panPhaseMinus" aria-label="Diminuer la phase">−</button>
-                        <input type="range" class="hs-range" id="panPhase" min="0" max="360" step="5" aria-label="Déphasage du pan">
-                        <button type="button" class="hs-btn" id="panPhasePlus" aria-label="Augmenter la phase">+</button>
+                        <button type="button" class="hs-btn" id="panPhaseMinus" aria-label="Decrease phase">−</button>
+                        <input type="range" class="hs-range" id="panPhase" min="0" max="360" step="5" aria-label="Pan phase shift">
+                        <button type="button" class="hs-btn" id="panPhasePlus" aria-label="Increase phase">+</button>
                     </div>
                 </div>
                 <div class="hs-row">
                     <div class="hs-label-row">
-                        <label for="panDepth">Largeur</label>
+                        <label for="panDepth">Width</label>
                         <span class="hs-val" id="panDepthVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panDepthMinus" aria-label="Diminuer la largeur">−</button>
-                        <input type="range" class="hs-range" id="panDepth" min="0" max="100" step="1" aria-label="Largeur de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Augmenter la largeur">+</button>
+                        <button type="button" class="hs-btn" id="panDepthMinus" aria-label="Decrease width">−</button>
+                        <input type="range" class="hs-range" id="panDepth" min="0" max="100" step="1" aria-label="Auto-pan width">
+                        <button type="button" class="hs-btn" id="panDepthPlus" aria-label="Increase width">+</button>
                     </div>
                 </div>
                 <div class="hs-row" id="panRatioRow">
@@ -659,56 +709,82 @@
                         <span class="hs-val" id="panRatioVal"></span>
                     </div>
                     <div class="horiz-slider-wrap">
-                        <button type="button" class="hs-btn" id="panRatioMinus" aria-label="Diminuer le ratio">−</button>
-                        <input type="range" class="hs-range" id="panRatio" min="20" max="80" step="1" aria-label="Ratio de l'auto-pan">
-                        <button type="button" class="hs-btn" id="panRatioPlus" aria-label="Augmenter le ratio">+</button>
+                        <button type="button" class="hs-btn" id="panRatioMinus" aria-label="Decrease ratio">−</button>
+                        <input type="range" class="hs-range" id="panRatio" min="20" max="80" step="1" aria-label="Auto-pan ratio">
+                        <button type="button" class="hs-btn" id="panRatioPlus" aria-label="Increase ratio">+</button>
                     </div>
                 </div>
                 <label class="pan-link-label">
-                    <input type="checkbox" class="toggle-ios" id="panLinkRatio" aria-label="Lier le ratio du pan au ratio d'amplitude">
-                    <span>🔗 Lier au ratio d'amplitude</span>
+                    <input type="checkbox" class="toggle-ios" id="panLinkRatio" aria-label="Link pan ratio to amplitude ratio">
+                    <span>🔗 Link to amplitude ratio</span>
                 </label>
             </div>
         </section>
 
-        <section class="card acc collapsed" data-acc="presets">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Préréglages</div>
+        <section class="card acc collapsed" id="sweepSection" data-acc="sweep">
+            <div class="sweep-header acc-toggle">
+                <span class="section-title" style="margin:0"><span class="acc-chevron">▸</span> ⟷ Freq Sweep</span>
+                <input type="checkbox" class="toggle-ios" id="sweepToggle" aria-label="Enable frequency sweep">
+            </div>
+            <div id="sweepBody" class="acc-body">
+                <div class="sweep-label" id="sweepLabel">50 Hz — 1200 Hz</div>
+                <div class="dual-slider-wrap" id="sweepSlider">
+                    <div class="ds-track"></div>
+                    <div class="ds-fill" id="sweepFill"></div>
+                    <div class="ds-handle" id="sweepH1" tabindex="0" role="slider" aria-label="Sweep low frequency"></div>
+                    <div class="ds-handle" id="sweepH2" tabindex="0" role="slider" aria-label="Sweep high frequency"></div>
+                </div>
+                <div class="sweep-controls">
+                    <label class="sweep-toggle-label">
+                        <input type="checkbox" class="toggle-ios" id="invertToggle" aria-label="Invert sweep">
+                        <span>⇄ Invert</span>
+                    </label>
+                    <label class="sweep-toggle-label">
+                        <input type="checkbox" class="toggle-ios" id="doubleToggle" aria-label="Double sweep">
+                        <span>⋀ Double</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="card acc collapsed" id="presetsSection" data-acc="presets">
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🎛 Presets</div>
             <div class="acc-body">
                 <div class="preset-row" id="builtinPresets"></div>
                 <div class="preset-row" id="userPresets"></div>
                 <div class="preset-save-row">
-                    <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Nom du préréglage…" aria-label="Nom du préréglage">
-                    <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Sauver</button>
+                    <input type="text" class="preset-name-input" id="presetNameInput" placeholder="Preset name..." aria-label="Preset name">
+                    <button type="button" class="btn-save-preset" id="btnSavePreset">💾 Save</button>
                 </div>
             </div>
         </section>
 
         <section class="panel device-section acc collapsed" id="deviceSection" data-acc="device">
-            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🔊 Sortie audio</div>
+            <div class="section-title acc-toggle"><span class="acc-chevron">▸</span> 🔊 Audio Output</div>
             <div class="acc-body">
                 <select id="deviceSelect" style="margin-top:4px">
-                    <option value="">Sélection par défaut</option>
+                    <option value="">Default selection</option>
                 </select>
             </div>
         </section>
-        <p class="ios-msg" id="iosDeviceMsg">Le son est dirigé vers le périphérique iOS par défaut.</p>
+        <p class="ios-msg" id="iosDeviceMsg">Audio is routed to the default iOS device.</p>
     </main>
-</div>
 
-<nav class="transport" aria-label="Lecture">
-    <button type="button" class="btn-main btn-play" id="btnPlay" aria-pressed="false">
-        <span class="icon" aria-hidden="true">▶</span><span>Play</span>
-    </button>
-    <button type="button" class="btn-main btn-hold" id="btnHold" aria-pressed="false">
-        <span class="icon" aria-hidden="true">⏸</span><span>Hold</span>
-    </button>
-</nav>
+    <nav class="transport" aria-label="Playback">
+        <button type="button" class="btn-main btn-play" id="btnPlay" aria-pressed="false">
+            <span class="icon" aria-hidden="true">▶</span><span>Play</span>
+        </button>
+        <button type="button" class="btn-main btn-hold" id="btnHold" aria-pressed="false">
+            <span class="icon" aria-hidden="true">⏸</span><span>Hold</span>
+        </button>
+    </nav>
+</div>
 
 <script>
 // ============================================================
-//  Wave Generator — moteur audio + UI
-//  Logique audio inchangée. UI rendue avec de vrais <button>
-//  accessibles (libellés ARIA, focus clavier).
+//  Wave Generator — audio engine + UI
+//  Audio logic unchanged. UI rendered with real accessible
+//  <button> (ARIA labels, keyboard focus).
 // ============================================================
 
 // --- MATH UTILS ---
@@ -724,23 +800,15 @@ function warpPhase(t, r) {
     }
 }
 
-function subOctaveHMax(fMain) {
-    const cutoff = 200;
-    const Sm = 1 / (1 + (fMain/cutoff)**2);
-    const Ss = 1 / (1 + ((fMain/2)/cutoff)**2);
-    const r = Sm / Ss;
-    return r / (1 + r);
-}
-
 // --- STATE ---
 const STORAGE_KEY = 'stimgen_v10_wave_generator';
 const USER_PRESETS_KEY = 'stimgen_v10_user_presets';
 
 const defaultState = {
-    waveform: 'sine',
-    freq: 700, volume: 60, rythm: 0.5, depth: 0, emphasis: 0, ratio: 50,
+    waveform: 'sine', duty: 50,
+    freq: 700, volume: 60, rythm: 0.5, depth: 0, ratio: 50,
     sweepActive: false, sweepLo: 500, sweepHi: 900, invertSweep: false, doubleSweep: false,
-    balance: 0, phase: 0, detuneOffset: 0, detuneDepth: 0, subOctave: 0,
+    balance: 0,
     panActive: false, panRate: 0.3, panDepth: 70, panRatio: 50,
     panSync: 'free', panPhase: 0, panLinkRatio: false
 };
@@ -760,6 +828,7 @@ function loadState() {
     if (!['free','half','x1','x2'].includes(state.panSync)) state.panSync = 'free';
     state.panPhase = Math.max(0, Math.min(360, state.panPhase || 0));
     state.panLinkRatio = !!state.panLinkRatio;
+    state.duty = Math.max(5, Math.min(95, state.duty ?? 50));
     Object.keys(defaultState).forEach(k => {
         if (state[k] === undefined) state[k] = defaultState[k];
     });
@@ -770,12 +839,12 @@ function saveState() {
 }
 
 const BUILTIN_PRESETS = [
-    { name: 'Défaut',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, phase:0, detuneOffset:2,   detuneDepth:30, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, phase:0, detuneOffset:6,   detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, phase:0, detuneOffset:10,  detuneDepth:20, subOctave:0,  sweepActive:false, panActive:false } },
-    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:60, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
-    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.6,  depth:60, ratio:50, balance:0, phase:0, detuneOffset:0,   detuneDepth:0,  subOctave:0,  sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50, panSync:'x1', panPhase:90, panLinkRatio:false } },
+    { name: 'Default',    state: { freq:700,  volume:60, rythm:0.5,  depth:0,  ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Delta',     state: { freq:200,  volume:60, rythm:2,    depth:80, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Theta',     state: { freq:432,  volume:60, rythm:6,    depth:70, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Alpha',     state: { freq:528,  volume:60, rythm:10,   depth:60, ratio:50, balance:0, sweepActive:false, panActive:false } },
+    { name: 'Sweep ♭',  state: { freq:200,  volume:60, rythm:0.2,  depth:40, ratio:50, balance:0, sweepActive:true, sweepLo:80, sweepHi:400, panActive:false } },
+    { name: 'Orbit',     state: { freq:600,  volume:60, rythm:0.6,  depth:60, ratio:50, balance:0, sweepActive:false, panActive:true, panRate:0.4, panDepth:85, panRatio:50, panSync:'x1', panPhase:90, panLinkRatio:false } },
 ];
 
 function loadUserPresets() {
@@ -790,15 +859,15 @@ function applyPreset(ps) {
     Object.keys(defaultState).forEach(k => { if (state[k] === undefined) state[k] = defaultState[k]; });
     saveState();
     syncAllUI();
-    if (audioInit) { updateModBuffer(); updatePanBuffer(); updateAudioParams(); }
+    if (audioInit) { applyCarrierWave(); updateModBuffer(); updatePanBuffer(); updateAudioParams(); }
 }
 
 // --- AUDIO ---
 let ctx = null, audioInit = false;
-let merger, masterG, analyserL, analyserR, analyserDetune;
-let carrierOsc, carrierMix1, carrierOscDetune, carrierMix2, carrierOscH2, harmonicGain;
-let balL, balR, amGainL, amGainR, depthGainL, depthGainR, amGainDetune;
-let modOsc, delayModL, delayModR, sweepShaper, sweepLFOGain, subSweepGain, detuneConstant;
+let merger, masterG, analyserL, analyserR;
+let carrierOsc;
+let balL, balR, amGainL, amGainR, depthGainL, depthGainR;
+let modOsc, sweepShaper, sweepLFOGain;
 let panOsc, panShaperL, panShaperR;
 
 function initAudio() {
@@ -809,66 +878,46 @@ function initAudio() {
     masterG = ctx.createGain(); masterG.gain.value = 0;
     merger.connect(masterG); masterG.connect(ctx.destination);
 
-    // Métrage L/R réel : on sépare les deux canaux post-master avec un
-    // ChannelSplitter, au lieu d'analyser le mixage mono. Balance, déphasage
-    // et auto-pan deviennent ainsi distinctement visibles à l'oscilloscope.
+    // Real L/R metering: separate the two channels post-master with a
+    // ChannelSplitter, instead of analyzing the mono mix. Balance, phase shift,
+    // and auto-pan thus become distinctly visible on the oscilloscope.
     const scopeSplit = ctx.createChannelSplitter(2);
     masterG.connect(scopeSplit);
 
     analyserL = ctx.createAnalyser(); analyserL.fftSize = 2048; scopeSplit.connect(analyserL, 0);
     analyserR = ctx.createAnalyser(); analyserR.fftSize = 2048; scopeSplit.connect(analyserR, 1);
-    analyserDetune = ctx.createAnalyser(); analyserDetune.fftSize = 2048;
 
-    carrierOsc = ctx.createOscillator(); carrierMix1 = ctx.createGain();
-    carrierOsc.connect(carrierMix1);
-
-    carrierOscDetune = ctx.createOscillator(); carrierMix2 = ctx.createGain();
-    carrierOscDetune.connect(carrierMix2);
-
-    carrierOscH2 = ctx.createOscillator(); harmonicGain = ctx.createGain();
-    carrierOscH2.connect(harmonicGain);
-
-    const mainSum = ctx.createGain();
-    carrierMix1.connect(mainSum); carrierMix2.connect(mainSum); harmonicGain.connect(mainSum);
+    carrierOsc = ctx.createOscillator();
 
     amGainL = ctx.createGain(); amGainR = ctx.createGain();
     balL = ctx.createGain(); balR = ctx.createGain();
-    mainSum.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
-    mainSum.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
+    carrierOsc.connect(amGainL); amGainL.connect(balL); balL.connect(merger, 0, 0);
+    carrierOsc.connect(amGainR); amGainR.connect(balR); balR.connect(merger, 0, 1);
 
-    // Auto-pan : la Balance fixe la position centrale du panoramique et le
-    // LFO (buffer warpPhase) fait osciller cette position autour du centre.
-    // La conversion position → gains L/R suit une loi unique (la même que la
-    // Balance statique) appliquée par deux WaveShapers pilotés par le LFO ;
-    // les courbes sont (re)calculées dans updateAudioParams. balL/balR.gain
-    // sont entièrement pilotés par les shapers (valeur intrinsèque nulle).
+    // Auto-pan: Balance sets the center position of the pan and the
+    // LFO (warpPhase buffer) oscillates this position around the center.
+    // The conversion position -> L/R gains follows a single law (the same as
+    // static Balance) applied by two WaveShapers driven by the LFO;
+    // curves are (re)calculated in updateAudioParams. balL/balR.gain
+    // are entirely driven by shapers (intrinsic value zero).
     balL.gain.value = 0; balR.gain.value = 0;
     panShaperL = ctx.createWaveShaper(); panShaperL.curve = panCurve('L', state.balance/100, 0);
     panShaperR = ctx.createWaveShaper(); panShaperR.curve = panCurve('R', state.balance/100, 0);
     panShaperL.connect(balL.gain); panShaperR.connect(balR.gain);
 
-    delayModL = ctx.createDelay(5.0); delayModR = ctx.createDelay(5.0);
+    // Amplitude modulation (Depth): the rhythmic LFO drives amGainL/R.gain.
     depthGainL = ctx.createGain(); depthGainR = ctx.createGain();
-    delayModL.connect(depthGainL); delayModR.connect(depthGainR);
     depthGainL.connect(amGainL.gain); depthGainR.connect(amGainR.gain);
 
-    amGainDetune = ctx.createGain(); amGainDetune.gain.value = 0;
-    carrierMix2.connect(amGainDetune); amGainDetune.connect(analyserDetune);
-    depthGainL.connect(amGainDetune.gain);
-
+    // Frequency sweep: the rhythmic LFO modulates the carrier frequency.
     sweepShaper = ctx.createWaveShaper();
     sweepLFOGain = ctx.createGain();
-    subSweepGain = ctx.createGain(); subSweepGain.gain.value = 0.5;
     sweepShaper.connect(sweepLFOGain);
     sweepLFOGain.connect(carrierOsc.frequency);
-    sweepLFOGain.connect(carrierOscDetune.frequency);
-    sweepLFOGain.connect(subSweepGain); subSweepGain.connect(carrierOscH2.frequency);
 
-    detuneConstant = ctx.createConstantSource();
-    detuneConstant.connect(carrierOscDetune.frequency);
+    carrierOsc.start();
 
-    carrierOsc.start(); carrierOscDetune.start(); carrierOscH2.start(); detuneConstant.start();
-
+    applyCarrierWave();
     updateModBuffer();
     updatePanBuffer();
     updateAudioParams();
@@ -877,7 +926,7 @@ function initAudio() {
 
 let currentPhaseIntegrator = 0;
 let panPhaseIntegrator = 0;
-// Multiplicateurs de synchro du pan (null = mode Libre).
+// Pan sync multipliers (null = Free mode).
 const PAN_MULTS = { free: null, half: 0.5, x1: 1, x2: 2 };
 function updateModBuffer() {
     if (!ctx) return;
@@ -890,7 +939,7 @@ function updateModBuffer() {
     const newOsc = ctx.createBufferSource();
     newOsc.buffer = buf; newOsc.loop = true;
     newOsc.playbackRate.value = state.hold ? 0 : state.rythm;
-    newOsc.connect(sweepShaper); newOsc.connect(delayModL); newOsc.connect(delayModR);
+    newOsc.connect(sweepShaper); newOsc.connect(depthGainL); newOsc.connect(depthGainR);
 
     const now = ctx.currentTime;
     newOsc.start(now, (currentPhaseIntegrator % 1.0) * buf.duration);
@@ -898,12 +947,12 @@ function updateModBuffer() {
     modOsc = newOsc;
 }
 
-// Courbe d'un WaveShaper convertissant la valeur du LFO (∈[-1,1]) en gain
-// d'un canal. La position de pan p = balance + largeur·LFO est bornée à
-// [-1,1], puis convertie par une loi de panoramique à PUISSANCE CONSTANTE
-// (cos/sin) : les deux canaux varient toujours en sens opposé simultanément
-// (L = cos, R = sin), l'énergie totale L²+R² restant constante. Centre =
-// 0.707 par canal ; rails = 1 / 0. largeur = 0 ⇒ courbe plate = Balance statique.
+// WaveShaper curve converting the LFO value (in [-1,1]) into gain
+// for a channel. The pan position p = balance + depth*LFO is clamped to
+// [-1,1], then converted by a CONSTANT POWER panning law
+// (cos/sin): the two channels always vary in opposite directions simultaneously
+// (L = cos, R = sin), total energy L²+R² remaining constant. Center =
+// 0.707 per channel; rails = 1 / 0. depth = 0 => flat curve = static Balance.
 function panCurve(side, b, depth) {
     const N = 512;
     const c = new Float32Array(N);
@@ -911,7 +960,7 @@ function panCurve(side, b, depth) {
         const x = (i/(N-1))*2 - 1;
         let p = b + depth * x;
         if (p > 1) p = 1; else if (p < -1) p = -1;
-        const theta = (p + 1) * (Math.PI / 4);   // p∈[-1,1] → θ∈[0, π/2]
+        const theta = (p + 1) * (Math.PI / 4);   // p in [-1,1] -> theta in [0, pi/2]
         c[i] = side === 'L' ? Math.cos(theta) : Math.sin(theta);
     }
     return c;
@@ -922,13 +971,13 @@ function updatePanBuffer() {
     const size = ctx.sampleRate;
     const buf = ctx.createBuffer(1, size, ctx.sampleRate);
     const data = buf.getChannelData(0);
-    // En mode lié, l'orbite emprunte le ratio de la modulation d'amplitude.
+    // In linked mode, the orbit borrows the ratio from the amplitude modulation.
     const effRatio = (state.panLinkRatio ? state.ratio : state.panRatio) / 100;
     for (let i = 0; i < size; i++) data[i] = Math.sin(2 * Math.PI * warpPhase(i/size, effRatio));
 
-    // En sync, la phase du pan est verrouillée sur celle du rythme (× mult)
-    // décalée du déphasage choisi ; le lock audio est assuré par un
-    // playbackRate proportionnel (cf. updateAudioParams).
+    // In sync, the pan phase is locked to the rhythm phase (x mult)
+    // shifted by the chosen phase shift; audio lock is ensured by a
+    // proportional playbackRate (see updateAudioParams).
     const mult = PAN_MULTS[state.panSync];
     const synced = mult !== null;
     if (synced) {
@@ -947,6 +996,27 @@ function updatePanBuffer() {
     panOsc = newOsc;
 }
 
+// Applies the waveform to the carrier. For the square wave, we synthesize a
+// band-limited PeriodicWave whose duty cycle is adjustable: Fourier series
+// of a +1/-1 pulse (zero DC => no continuous offset). duty=50
+// gives exactly a standard square.
+function applyCarrierWave() {
+    if (!ctx || !carrierOsc) return;
+    if (state.waveform === 'square') {
+        const N = 64;
+        const real = new Float32Array(N + 1);
+        const imag = new Float32Array(N + 1);
+        const d = state.duty / 100;
+        for (let n = 1; n <= N; n++) {
+            real[n] = 2 * Math.sin(2*Math.PI*n*d) / (Math.PI*n);
+            imag[n] = 2 * (1 - Math.cos(2*Math.PI*n*d)) / (Math.PI*n);
+        }
+        carrierOsc.setPeriodicWave(ctx.createPeriodicWave(real, imag));
+    } else {
+        carrierOsc.type = state.waveform || 'sine';
+    }
+}
+
 function updateAudioParams() {
     if (!ctx) return;
     const now = ctx.currentTime;
@@ -954,36 +1024,20 @@ function updateAudioParams() {
     masterG.gain.setTargetAtTime(state.playing ? state.volume / 100 : 0, now, 0.05);
     if (modOsc) modOsc.playbackRate.setTargetAtTime(state.hold ? 0 : state.rythm, now, 0.05);
 
-    // Forme d'onde appliquée à la porteuse principale + détune.
-    // La sous-octave (carrierOscH2) reste sinus pour des basses propres.
-    const wf = state.waveform || 'sine';
-    if (carrierOsc.type !== wf) { carrierOsc.type = wf; carrierOscDetune.type = wf; }
-
     const cf = state.sweepActive ? (state.sweepLo + state.sweepHi)/2 : state.freq;
     carrierOsc.frequency.setTargetAtTime(cf, now, 0.05);
-    carrierOscH2.frequency.setTargetAtTime(cf/2, now, 0.05);
-    carrierOscDetune.frequency.setTargetAtTime(cf, now, 0.05);
-    detuneConstant.offset.setTargetAtTime(state.detuneOffset, now, 0.05);
-
-    const hRaw = state.subOctave / 100;
-    const h = cf < 100 ? 0 : hRaw * subOctaveHMax(cf);
-    const d = state.detuneDepth / 100;
-    carrierMix1.gain.setTargetAtTime((1-h)*(1-d/2), now, 0.05);
-    carrierMix2.gain.setTargetAtTime((1-h)*(d/2), now, 0.05);
-    harmonicGain.gain.setTargetAtTime(h, now, 0.05);
 
     const depth = state.depth / 100;
     const amBase = 1.0 - depth/2;
     amGainL.gain.setTargetAtTime(amBase, now, 0.05);
     amGainR.gain.setTargetAtTime(amBase, now, 0.05);
-    amGainDetune.gain.setTargetAtTime(amBase, now, 0.05);
     depthGainL.gain.setTargetAtTime(depth/2, now, 0.05);
     depthGainR.gain.setTargetAtTime(depth/2, now, 0.05);
 
-    // Balance = centre du panoramique ; l'auto-pan (largeur pd) fait osciller
-    // la position autour de ce centre. Les WaveShapers appliquent la loi de
-    // pan à puissance constante (L/R toujours en sens opposé) au LFO ;
-    // pd=0 ⇒ courbe plate = Balance statique.
+    // Balance = pan center; auto-pan (width pd) makes the position
+    // oscillate around this center. WaveShapers apply the constant
+    // power pan law (L/R always in opposite directions) to the LFO;
+    // pd=0 => flat curve = static Balance.
     const b = state.balance / 100;
     const pd = state.panActive ? state.panDepth / 100 : 0;
     panShaperL.curve = panCurve('L', b, pd);
@@ -991,11 +1045,6 @@ function updateAudioParams() {
     const panMult = PAN_MULTS[state.panSync];
     const panRate = panMult !== null ? state.rythm * panMult : state.panRate;
     if (panOsc) panOsc.playbackRate.setTargetAtTime(state.hold ? 0 : panRate, now, 0.05);
-
-    let delaySecs = state.rythm > 0.01 ? (Math.abs(state.phase)/360) / state.rythm : 0;
-    delaySecs = Math.min(delaySecs, 5.0);
-    delayModL.delayTime.setTargetAtTime(state.phase < 0 ? delaySecs : 0, now, 0.05);
-    delayModR.delayTime.setTargetAtTime(state.phase > 0 ? delaySecs : 0, now, 0.05);
 
     let sr = state.sweepActive ? (state.sweepHi - state.sweepLo)/2 : 0;
     if (state.invertSweep) sr = -sr;
@@ -1012,12 +1061,12 @@ function updateAudioParams() {
 }
 
 // --- WAVEFORM SELECTOR ---
-// Glyphes SVG (currentColor → suivent la couleur du bouton, actif ou non).
+// SVG Glyphs (currentColor -> follow the button color, active or not).
 const WAVEFORMS = [
-    { id:'sine',     label:'Sinus',    d:'M2,8 Q6.5,1 11,8 T20,8' },
-    { id:'square',   label:'Carré',    d:'M2,13 L2,4 L9,4 L9,13 L16,13 L16,4 L22,4' },
+    { id:'sine',     label:'Sine',    d:'M2,8 Q6.5,1 11,8 T20,8' },
+    { id:'square',   label:'Square',    d:'M2,13 L2,4 L9,4 L9,13 L16,13 L16,4 L22,4' },
     { id:'triangle', label:'Triangle', d:'M2,13 L7,4 L12,13 L17,4 L22,13' },
-    { id:'sawtooth', label:'Scie',     d:'M2,13 L9,4 L9,13 L16,4 L16,13 L22,4' }
+    { id:'sawtooth', label:'Sawtooth',     d:'M2,13 L9,4 L9,13 L16,4 L16,13 L22,4' }
 ];
 
 function renderWaveSelect() {
@@ -1029,7 +1078,7 @@ function renderWaveSelect() {
         b.type = 'button';
         b.className = 'wave-btn';
         b.setAttribute('aria-pressed', state.waveform === w.id ? 'true' : 'false');
-        b.setAttribute('aria-label', "Forme d'onde " + w.label);
+        b.setAttribute('aria-label', "Waveform " + w.label);
         b.innerHTML =
             '<svg class="wave-glyph" viewBox="0 0 24 16" fill="none" stroke="currentColor" ' +
             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -1039,20 +1088,46 @@ function renderWaveSelect() {
             if (state.waveform === w.id) return;
             state.waveform = w.id;
             renderWaveSelect();
-            if (audioInit) updateAudioParams();
+            updateDutyUI();
+            if (audioInit) { applyCarrierWave(); updateAudioParams(); }
             saveState();
         });
         box.appendChild(b);
     });
 }
 
+// Duty cycle (pulse width) — visible only for square.
+function updateDutyUI() {
+    const r = document.getElementById('dutyRange');
+    if (!r) return;
+    r.value = state.duty;
+    r.style.setProperty('--hs-fill', Math.max(0, Math.min(100, ((state.duty - 5)/(95 - 5))*100)) + '%');
+    document.getElementById('dutyVal').textContent = state.duty + ' %';
+    document.getElementById('dutyRow').style.display = (state.waveform === 'square') ? '' : 'none';
+}
+
+function bindDuty() {
+    const r = document.getElementById('dutyRange');
+    if (!r) return;
+    const set = (v) => {
+        state.duty = Math.round(Math.max(5, Math.min(95, v)));
+        updateDutyUI();
+        if (audioInit) applyCarrierWave();
+        saveState();
+    };
+    r.addEventListener('input', e => set(parseFloat(e.target.value)));
+    holdRepeat(document.getElementById('dutyMinus'), () => set(state.duty - 1));
+    holdRepeat(document.getElementById('dutyPlus'),  () => set(state.duty + 1));
+    updateDutyUI();
+}
+
 // --- KNOBS (grid sliders) ---
 const knobsDef = [
-    { id:'freq',     label:'Fréquence', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },
+    { id:'freq',     label:'Frequency', min:50,  max:1200, step:10,   color:'#0f6b7a', fmt: v => v+' Hz' },
     { id:'volume',   label:'Volume',    min:0,   max:100,  step:1,    color:'#9c5e16', fmt: v => v+' %' },
-    { id:'rythm',    label:'Rythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
+    { id:'rythm',    label:'Rhythm',     min:0,   max:5,    step:0.05, color:'#245fa6', fmt: v => (+v).toFixed(2)+' Hz' },
     { id:'depth',    label:'Depth',     min:0,   max:100,  step:1,    color:'#1f7a4d', fmt: v => v+' %' },
-    { id:'emphasis', label:'Emphasis',  min:0,   max:100,  step:1,    color:'#6d3f80', fmt: v => v+' %', disabled:true },
+    { id:'balance',  label:'Balance',   min:-100, max:100, step:1,    color:'#245fa6', fmt: v => { v=+v; return v===0 ? 'Center' : (v<0 ? `◀ L ${-v}` : `R ${v} ▶`); } },
     { id:'ratio',    label:'Ratio',     min:20,  max:80,   step:1,    color:'#a04335', fmt: v => v+'/'+(100-v) }
 ];
 const knobRefs = {};
@@ -1065,7 +1140,7 @@ function holdRepeat(el, fn) {
     el.addEventListener('touchstart', go, { passive: false });
     window.addEventListener('mouseup', stop);
     window.addEventListener('touchend', stop);
-    // Accessibilité clavier : Entrée / Espace déclenchent un pas
+    // Keyboard accessibility: Enter / Space trigger a step
     el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ' || e.code === 'Space') { e.preventDefault(); fn(); }
     });
@@ -1118,15 +1193,15 @@ function renderKnobs() {
             setTrack(v); valEl.textContent = k.fmt(v);
             if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
-            saveState(); updateHSDisplays();
+            saveState();
         });
 
         const btnRow = document.createElement('div');
         btnRow.className = 'knob-btn-row';
         const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'knob-btn'; btnM.textContent = '−';
-        btnM.setAttribute('aria-label', 'Diminuer ' + k.label);
+        btnM.setAttribute('aria-label', 'Decrease ' + k.label);
         const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'knob-btn'; btnP.textContent = '+';
-        btnP.setAttribute('aria-label', 'Augmenter ' + k.label);
+        btnP.setAttribute('aria-label', 'Increase ' + k.label);
         if (k.disabled) { btnM.disabled = true; btnP.disabled = true; }
 
         const updateKnob = (nv) => {
@@ -1137,7 +1212,7 @@ function renderKnobs() {
             setTrack(nv); valEl.textContent = k.fmt(nv);
             if (k.id === 'ratio') { updateModBuffer(); if (state.panLinkRatio) { updatePanBuffer(); updatePanUI(); } }
             if (audioInit) updateAudioParams();
-            saveState(); updateHSDisplays();
+            saveState();
         };
         holdRepeat(btnM, () => updateKnob(state[k.id] - k.step));
         holdRepeat(btnP, () => updateKnob(state[k.id] + k.step));
@@ -1158,94 +1233,10 @@ function syncKnob(id, overrideVal) {
     r.setTrack(v);
 }
 
-// --- HORIZONTAL SLIDERS ---
-const hsDef = [
-    { id:'balance',      label:'Balance',            min:-100, max:100,  step:1   },
-    { id:'phase',        label:'Déphasage L/R',      min:-45,  max:45,   step:1   },
-    { id:'detuneOffset', label:'Détune Offset',      min:-2.5, max:2.5,  step:0.1 },
-    { id:'detuneDepth',  label:'Profondeur Détune',  min:0,    max:100,  step:1   },
-    { id:'subOctave',    label:'Sous-octave (Bass)', min:0,    max:100,  step:1   }
-];
-const hsRefs = {};
-
-function fmtHS(id, v) {
-    v = +v;
-    if (id === 'balance')      return v === 0 ? 'Centre' : (v < 0 ? `◀ L ${-v}` : `R ${v} ▶`);
-    if (id === 'phase')        return v === 0 ? 'Synchro' : (v > 0 ? `L mène ${v}°` : `R mène ${-v}°`);
-    if (id === 'detuneOffset') return v === 0 ? 'Synchro' : `${v>0?'+':''}${v.toFixed(1)} Hz`;
-    if (id === 'detuneDepth')  return v + ' %';
-    if (id === 'subOctave') {
-        const cf = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
-        return cf < 100 ? '(muet)' : `${v} % (${(cf/2).toFixed(0)} Hz)`;
-    }
-    return v;
-}
-
-function renderSliders() {
-    const wrap = document.getElementById('slidersWrap');
-    wrap.innerHTML = '';
-    hsDef.forEach(s => {
-        const row = document.createElement('div');
-        row.className = 'hs-row';
-
-        const lblRow = document.createElement('div');
-        lblRow.className = 'hs-label-row';
-        const lbl = document.createElement('label'); lbl.textContent = s.label; lbl.setAttribute('for', 'hs_' + s.id);
-        const valEl = document.createElement('span'); valEl.className = 'hs-val'; valEl.id = 'hsval_' + s.id;
-        lblRow.appendChild(lbl); lblRow.appendChild(valEl);
-
-        const cw = document.createElement('div'); cw.className = 'horiz-slider-wrap';
-        const btnM = document.createElement('button'); btnM.type = 'button'; btnM.className = 'hs-btn'; btnM.textContent = '−';
-        btnM.setAttribute('aria-label', 'Diminuer ' + s.label);
-        const btnP = document.createElement('button'); btnP.type = 'button'; btnP.className = 'hs-btn'; btnP.textContent = '+';
-        btnP.setAttribute('aria-label', 'Augmenter ' + s.label);
-        const range = document.createElement('input'); range.type = 'range';
-        range.className = 'hs-range';
-        range.id = 'hs_' + s.id;
-        range.setAttribute('aria-label', s.label);
-        range.min = s.min; range.max = s.max; range.step = s.step;
-        const cur = (state[s.id] !== undefined) ? state[s.id] : 0;
-        range.value = cur;
-        valEl.textContent = fmtHS(s.id, cur);
-
-        const setHSTrack = (v) => {
-            const pct = Math.max(0, Math.min(100, ((v - s.min) / (s.max - s.min)) * 100));
-            range.style.setProperty('--hs-fill', pct + '%');
-        };
-        setHSTrack(cur);
-
-        cw.appendChild(btnM); cw.appendChild(range); cw.appendChild(btnP);
-        row.appendChild(lblRow); row.appendChild(cw);
-        wrap.appendChild(row);
-
-        const update = (nv) => {
-            nv = Math.round(Math.max(s.min, Math.min(s.max, nv)) / s.step) * s.step;
-            state[s.id] = nv;
-            range.value = nv;
-            valEl.textContent = fmtHS(s.id, nv);
-            setHSTrack(nv);
-            if (audioInit) updateAudioParams();
-            saveState();
-        };
-        range.addEventListener('input', e => update(parseFloat(e.target.value)));
-        holdRepeat(btnM, () => update(state[s.id] - s.step));
-        holdRepeat(btnP, () => update(state[s.id] + s.step));
-
-        hsRefs[s.id] = { range, valEl };
-    });
-}
-
-function updateHSDisplays() {
-    hsDef.forEach(s => {
-        const el = document.getElementById('hsval_' + s.id);
-        if (el) el.textContent = fmtHS(s.id, state[s.id]);
-    });
-}
-
 function syncAllUI() {
     renderWaveSelect();
+    updateDutyUI();
     renderKnobs();
-    renderSliders();
     updateSweepUI();
     updatePanUI();
     document.getElementById('invertToggle').checked = !!state.invertSweep;
@@ -1258,12 +1249,17 @@ let sWrap, sFill, sH1, sH2, sBody;
 function updateSweepUI() {
     const minF = 50, maxF = 1200;
     const w = sWrap.offsetWidth - 24;
-    const p1 = (state.sweepLo - minF) / (maxF - minF);
-    const p2 = (state.sweepHi - minF) / (maxF - minF);
-    sH1.style.left = `calc(12px + ${p1*w}px)`;
-    sH2.style.left = `calc(12px + ${p2*w}px)`;
-    sFill.style.left = `calc(12px + ${p1*w}px)`;
-    sFill.style.width = `${(p2-p1)*w}px`;
+    // Collapsed / un-layouted section: zero width. We do not
+    // position the handles (otherwise aberrant values); they will be
+    // replaced upon opening or next relayout, as soon as w > 0.
+    if (w > 0) {
+        const p1 = (state.sweepLo - minF) / (maxF - minF);
+        const p2 = (state.sweepHi - minF) / (maxF - minF);
+        sH1.style.left = `calc(12px + ${p1*w}px)`;
+        sH2.style.left = `calc(12px + ${p2*w}px)`;
+        sFill.style.left = `calc(12px + ${p1*w}px)`;
+        sFill.style.width = `${(p2-p1)*w}px`;
+    }
     document.getElementById('sweepLabel').textContent = `${state.sweepLo} Hz — ${state.sweepHi} Hz`;
     sBody.style.opacity = state.sweepActive ? '1' : '0.5';
     sBody.style.pointerEvents = state.sweepActive ? 'auto' : 'none';
@@ -1296,7 +1292,7 @@ function bindSweep() {
             if (hi > 1200) { hi=1200; lo=hi-span; }
             state.sweepLo=lo; state.sweepHi=hi;
         }
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays();
+        updateSweepUI(); if (audioInit) updateAudioParams();
     };
     const onEnd = () => { if (drag) { drag=null; saveState(); } };
 
@@ -1311,7 +1307,7 @@ function bindSweep() {
     window.addEventListener('mouseup', onEnd);
     window.addEventListener('touchend', onEnd);
 
-    // Accessibilité clavier des poignées de sweep
+    // Keyboard accessibility for sweep handles
     const kbHandle = (which) => (e) => {
         const stepKeys = { ArrowLeft:-10, ArrowDown:-10, ArrowRight:10, ArrowUp:10 };
         if (!(e.key in stepKeys)) return;
@@ -1319,14 +1315,14 @@ function bindSweep() {
         const d = stepKeys[e.key];
         if (which === 'h1') state.sweepLo = Math.max(50, Math.min(state.sweepHi-10, state.sweepLo + d));
         else state.sweepHi = Math.max(state.sweepLo+10, Math.min(1200, state.sweepHi + d));
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+        updateSweepUI(); if (audioInit) updateAudioParams(); saveState();
     };
     sH1.addEventListener('keydown', kbHandle('h1'));
     sH2.addEventListener('keydown', kbHandle('h2'));
 
     document.getElementById('sweepToggle').addEventListener('change', e => {
         state.sweepActive = e.target.checked;
-        updateSweepUI(); if (audioInit) updateAudioParams(); updateHSDisplays(); saveState();
+        updateSweepUI(); if (audioInit) updateAudioParams(); saveState();
     });
     document.getElementById('invertToggle').addEventListener('change', e => {
         state.invertSweep = e.target.checked; if (audioInit) updateAudioParams(); saveState();
@@ -1359,19 +1355,19 @@ function updatePanUI() {
     document.getElementById('panRateVal').textContent = synced
         ? '⟲ ' + state.panSync.replace('half','÷2').replace('x1','×1').replace('x2','×2')
         : (+state.panRate).toFixed(2) + ' Hz';
-    document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Centre' : state.panDepth + ' %';
+    document.getElementById('panDepthVal').textContent = state.panDepth === 0 ? 'Center' : state.panDepth + ' %';
     document.getElementById('panRatioVal').textContent = effRatio + '/' + (100 - effRatio) + (state.panLinkRatio ? ' 🔗' : '');
     let pv = state.panPhase + '°';
-    if (state.panPhase === 0 || state.panPhase === 360) pv = '0° (aligné)';
-    else if (state.panPhase === 180) pv = '180° (inversé)';
+    if (state.panPhase === 0 || state.panPhase === 360) pv = '0° (aligned)';
+    else if (state.panPhase === 180) pv = '180° (inverted)';
     document.getElementById('panPhaseVal').textContent = pv;
 
-    // Boutons de sync
+    // Sync buttons
     document.querySelectorAll('#panSyncSeg .seg-btn').forEach(b => {
         b.setAttribute('aria-pressed', b.dataset.sync === state.panSync ? 'true' : 'false');
     });
 
-    // Vitesse inactive en sync ; Phase inactive en mode Libre ; Ratio inactif si lié.
+    // Speed inactive in sync; Phase inactive in Free mode; Ratio inactive if linked.
     document.getElementById('panRateRow').classList.toggle('row-disabled', synced);
     document.getElementById('panPhaseRow').classList.toggle('row-disabled', !synced);
     document.getElementById('panRatioRow').classList.toggle('row-disabled', state.panLinkRatio);
@@ -1468,7 +1464,7 @@ function renderUserPresets() {
         x.textContent = '✕';
         x.dataset.idx = i;
         x.setAttribute('role', 'button');
-        x.setAttribute('aria-label', 'Supprimer le préréglage ' + p.name);
+        x.setAttribute('aria-label', 'Delete preset ' + p.name);
         b.appendChild(x);
         b.addEventListener('click', e => {
             if (e.target.dataset.idx !== undefined) {
@@ -1482,7 +1478,7 @@ function renderUserPresets() {
 
 // --- VISUALIZERS ---
 let scopeCanvas, vuCanvas, sCtx, vCtx;
-const bufL = new Float32Array(2048), bufR = new Float32Array(2048), bufD = new Float32Array(2048);
+const bufL = new Float32Array(2048), bufR = new Float32Array(2048);
 let dpr = 1;
 
 function initCanvas() {
@@ -1520,14 +1516,6 @@ function drawScope() {
         sCtx.stroke();
     };
 
-    if (state.detuneDepth > 0) {
-        analyserDetune.getFloatTimeDomainData(bufD);
-        const cf2 = state.sweepActive ? (state.sweepLo+state.sweepHi)/2 : state.freq;
-        const h2 = cf2 < 100 ? 0 : (state.subOctave/100) * subOctaveHMax(cf2);
-        const sc = (1-h2)*(state.detuneDepth/100/2)*(state.volume/100);
-        for (let i = 0; i < bufD.length; i++) bufD[i] *= sc;
-        trace(bufD, 'rgba(240,150,60,0.8)', 1.5);
-    }
     trace(bufL, '#3b86d6', 2.5);
     trace(bufR, '#ff5c69', 2.5);
 
@@ -1583,9 +1571,32 @@ function togglePlay() {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
         btn.innerHTML = '<span class="icon" aria-hidden="true">▶</span><span>Play</span>';
+        releaseWakeLock();
     }
     if (audioInit) updateAudioParams();
 }
+
+// --- WAKE LOCK (prevents screen sleep during playback) ---
+// Screen Wake Lock API (iOS 16.4+, Android, desktop). The lock is released
+// automatically by the browser when the app goes to the background, so
+// we reacquire it on return if the signal is still running.
+let wakeLock = null;
+
+async function requestWakeLock() {
+    if (wakeLock || !('wakeLock' in navigator)) return;
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) { /* denied (e.g. Low Power Mode) or not supported */ }
+}
+
+function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.playing && !wakeLock) requestWakeLock();
+});
 
 // --- DEVICE SELECTOR ---
 function setupDevices() {
@@ -1612,7 +1623,7 @@ function setupDevices() {
     }
 }
 
-// --- ACCORDÉON ---
+// --- ACCORDION ---
 const ACC_KEY = 'stimgen_v10_accordion';
 function loadAccState() { try { return JSON.parse(localStorage.getItem(ACC_KEY) || '{}'); } catch(e) { return {}; } }
 function saveAccState(s) { localStorage.setItem(ACC_KEY, JSON.stringify(s)); }
@@ -1621,7 +1632,7 @@ function initAccordion() {
     const stored = loadAccState();
     document.querySelectorAll('[data-acc]').forEach(sec => {
         const id = sec.dataset.acc;
-        if (id in stored) sec.classList.toggle('collapsed', !!stored[id]);  // sinon : valeur du HTML
+        if (id in stored) sec.classList.toggle('collapsed', !!stored[id]);  // else: HTML value
         const head = sec.querySelector('.acc-toggle');
         if (!head) return;
         head.setAttribute('role', 'button');
@@ -1633,8 +1644,8 @@ function initAccordion() {
             sec.classList.toggle('collapsed', collapsed);
             head.setAttribute('aria-expanded', String(!collapsed));
             const s = loadAccState(); s[id] = collapsed; saveAccState(s);
-            // Le balayage positionne ses poignées d'après la largeur du conteneur,
-            // nulle tant que la section est repliée : on recalcule à l'ouverture.
+            // The sweep positions its handles based on container width,
+            // zero as long as section is collapsed: recalculate on open.
             if (!collapsed && id === 'sweep' && typeof updateSweepUI === 'function') updateSweepUI();
         };
         head.addEventListener('click', e => { if (!fromControl(e.target)) toggle(); });
@@ -1658,14 +1669,16 @@ window.addEventListener('load', () => {
 
     loadState();
     renderWaveSelect();
+    bindDuty();
     renderKnobs();
-    renderSliders();
     bindSweep();
     bindAutoPan();
     renderPresets();
 
     document.getElementById('btnPlay').addEventListener('click', () => {
         if (!audioInit) initAudio();
+        // Requested within user gesture (iOS requires transient activation).
+        if (!state.playing) requestWakeLock();
         if (ctx.state === 'suspended') ctx.resume().then(togglePlay);
         else togglePlay();
     });
@@ -1707,7 +1720,23 @@ window.addEventListener('load', () => {
     }
     requestAnimationFrame(() => waitForLayout(10));
     requestAnimationFrame(animate);
-    window.addEventListener('resize', () => { initCanvas(); updateSweepUI(); });
+
+    // Realignment of the display after a resize / rotation.
+    // initCanvas() and updateSweepUI() read the actual dimensions of the
+    // elements; however after a rotation, iOS updates these dimensions with a
+    // slight delay. We therefore recalculate immediately (responsiveness) THEN
+    // again once the layout has stabilized, so that the canvas and handles
+    // are correctly repositioned in the new orientation — and upon returning to portrait.
+    let relayoutT1 = null, relayoutT2 = null;
+    function relayout() { initCanvas(); updateSweepUI(); }
+    function scheduleRelayout() {
+        requestAnimationFrame(relayout);
+        clearTimeout(relayoutT1); relayoutT1 = setTimeout(relayout, 180);
+        clearTimeout(relayoutT2); relayoutT2 = setTimeout(relayout, 450);
+    }
+    window.addEventListener('resize', scheduleRelayout);
+    window.addEventListener('orientationchange', scheduleRelayout);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleRelayout);
 });
 
 </script>
