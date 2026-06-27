@@ -1571,6 +1571,35 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+// --- WAKE LOCK (empêche la mise en veille de l'écran pendant la lecture) ---
+let wakeLock = null;
+
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (err) {
+        // Refusé (batterie faible, onglet en arrière-plan…) : on ignore.
+        wakeLock = null;
+    }
+}
+
+async function releaseWakeLock() {
+    if (wakeLock) {
+        try { await wakeLock.release(); } catch (e) {}
+        wakeLock = null;
+    }
+}
+
+// Le verrou est libéré par le système quand l'onglet passe en arrière-plan.
+// On le réacquiert dès que la page redevient visible si la lecture continue.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.playing && !wakeLock) {
+        requestWakeLock();
+    }
+});
+
 // --- PLAY / HOLD ---
 function togglePlay() {
     state.playing = !state.playing;
@@ -1579,10 +1608,12 @@ function togglePlay() {
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
         btn.innerHTML = '<span class="icon" aria-hidden="true">■</span><span>Stop</span>';
+        requestWakeLock();
     } else {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
         btn.innerHTML = '<span class="icon" aria-hidden="true">▶</span><span>Play</span>';
+        releaseWakeLock();
     }
     if (audioInit) updateAudioParams();
 }
