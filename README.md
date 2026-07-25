@@ -8,25 +8,24 @@ depuis un téléphone, une tablette ou un autre ordinateur.
 Depuis le dossier du projet :
 
 ```bash
-node server.js
+python3 server.py
 ```
 
 Le serveur affiche alors quelque chose comme :
 
 ```
-  Sur cet ordinateur :   http://localhost:8080
-
+  Sur cet ordinateur  : http://localhost:8000
   Depuis un autre appareil du réseau, ouvre :
-     http://192.168.1.42:8080
+      http://192.168.1.42:8000
 ```
 
-Sur l'autre ordinateur/téléphone, ouvre l'adresse en `http://192.168.x.x:8080`
+Sur l'autre ordinateur/téléphone, ouvre l'adresse en `http://192.168.x.x:8000`
 (**pas** `localhost` — `localhost` désigne toujours l'appareil courant).
 
 Changer de port si besoin :
 
 ```bash
-PORT=3000 node server.js
+python3 server.py 8080
 ```
 
 ## « Je n'arrive pas à atteindre le serveur depuis un autre ordinateur »
@@ -40,16 +39,16 @@ PORT=3000 node server.js
    réseaux « invité » qui isolent les appareils entre eux), ou même box.
 
 3. **Le pare-feu bloque le port.** C'est la cause la plus fréquente une fois
-   que le serveur écoute bien sur `0.0.0.0`. Autorise le port (ex. 8080) :
+   que le serveur écoute bien sur `0.0.0.0`. Autorise le port (ex. 8000) :
 
    - **Windows** : au premier lancement, Windows Defender demande d'autoriser
-     Node.js → coche **Réseaux privés** et « Autoriser l'accès ». Sinon :
+     Python → coche **Réseaux privés** et « Autoriser l'accès ». Sinon :
      Panneau de configuration → Pare-feu Windows Defender → Autoriser une
-     application → coche Node.js pour les réseaux privés.
+     application → coche Python pour les réseaux privés.
    - **macOS** : Réglages Système → Réseau → Pare-feu → Options → autorise
-     `node` à accepter les connexions entrantes (ou désactive temporairement
+     `python3` à accepter les connexions entrantes (ou désactive temporairement
      le pare-feu pour tester).
-   - **Linux (ufw)** : `sudo ufw allow 8080/tcp`
+   - **Linux (ufw)** : `sudo ufw allow 8000/tcp`
 
 4. **Tester rapidement.** Depuis l'autre machine :
    `ping <IP-du-serveur>`. Si le ping échoue → problème réseau/isolation Wi-Fi.
